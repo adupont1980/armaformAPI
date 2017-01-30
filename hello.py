@@ -282,26 +282,19 @@ def send_email():
         print(a["subject"])
     print(mailId)
     return ('OK')
-# ###############################
-#  GET MARQUE PROBABLY OBSOLETE
-@app.route('/marques', methods=['GET'])
-def get_all_marques():
-    marques = mongo.db.marques
-    output = []
-    for s in marques.find():
-        output.append({'name' : s['name'], 'modele' : s['modeles']})
-    return jsonify( output)
 
-# @app.route('/hello')
-# def hello_world():
-#     return 'Hello'
+def main():
+    """Main entry point of the app."""
+    try:
+        http_server = WSGIServer(('0.0.0.0', 8080),
+                                 app,
+                                 log=logging,
+                                 error_log=logging)
 
-# @app.route('/user/<username>')
-# def show_user_profile(username):
-#     # show the user profile for that user
-#     return 'User %s' % username
-
-# @app.route('/post/<int:post_id>')
-# def show_post(post_id):
-#     # show the post with the given id, the id is an integer
-#     return 'Post %d' % post_id
+        http_server.serve_forever()
+    except Exception as exc:
+        logger.error(exc.message)
+    finally:
+        # get last entry and insert build appended if not completed
+        # Do something here
+        pass
