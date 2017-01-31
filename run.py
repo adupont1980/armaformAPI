@@ -10,9 +10,9 @@ from bson import json_util
 from bson.objectid import ObjectId
 from flask_mail import Mail, Message
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    server.main()
+#     server.main()
 
 mail = Mail()
 
