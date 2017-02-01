@@ -1,2 +1,1 @@
-set FLASK_APP=hello.py
-web python -m flask run
+web python hello.py
