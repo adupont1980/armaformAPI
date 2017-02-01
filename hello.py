@@ -45,8 +45,11 @@ mongo = PyMongo(app)
 
 @app.route('/')
 def index():
+    result = mongo.step.find_one()
+    # print(result)
     
-    return 'SERVER STARTED'
+    return json.dumps(result, default=json_util.default)
+    # return 'SERVER STARTED'
 
 # #################################
 # GET FORM DATA     _id param
@@ -283,11 +286,12 @@ def get_datas():
 #         print(a["subject"])
 #     print(mailId)
 #     return ('OK')
-
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run()
+
+# if __name__ == "__main__":
+#     port = int(os.environ.get("PORT", 5000))
+#     app.run(host='0.0.0.0', port=port)
 
 # def main():
 #     """Main entry point of the app."""
