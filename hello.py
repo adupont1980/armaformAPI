@@ -23,7 +23,7 @@ app = Flask(__name__)
 
 # mail.init_app(app)
 
-CORS(app)
+# CORS(app)
 
 
 app.config["MONGO_DBNAME"] = "heroku_p754dw74"
