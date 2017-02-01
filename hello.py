@@ -42,20 +42,11 @@ mongo = PyMongo(app)
 #         return str(o)
 #     return o.__str__
 
-@app.route('/custom_collection', methods=['GET'])
-def test():
-    print('sss')
-    return '{"ee":"ok"}'
 
 @app.route('/')
 def index():
-    listMarques = []
-    val1 = 'modeles'
-    list_marques = mongo.db.marques.find()
-    for record in list_marques:
-        print(record[val1])
-        # listMarques.append(record)
-    return 'jsonify(listMarques)'
+    
+    return 'SERVER STARTED'
 
 # #################################
 # GET FORM DATA     _id param
