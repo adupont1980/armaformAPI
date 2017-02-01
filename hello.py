@@ -26,7 +26,7 @@ app = Flask(__name__)
 # CORS(app)
 
 
-# app.config["MONGO_DBNAME"] = "heroku_p754dw74"
+app.config["MONGO_DBNAME"] = "heroku_p754dw74"
 MONGO_URL = os.environ.get('MONGO_URL')
 print(MONGO_URL)
 if not MONGO_URL:
