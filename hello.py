@@ -34,7 +34,7 @@ app = Flask(__name__)
 #     MONGO_URL = "mongodb://localhost:27017";
 # app.config['MONGO_URI'] = MONGO_URL
 
-connection = pymongo.MongoClient(ds135029.mlab.com, 35029)
+connection = pymongo.MongoClient("ds135029.mlab.com", 35029)
 db = connection["heroku_p754dw74"]
 db.authenticate("russianBallet", "Axonian456")
 
