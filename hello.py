@@ -7,21 +7,21 @@ from flask_pymongo import PyMongo
 import json
 from bson import json_util
 from bson.objectid import ObjectId
-from flask_mail import Mail, Message
+# from flask_mail import Mail, Message
 
 mail = Mail()
 
 app = Flask(__name__)
 
 
-app.config['MAIL_SERVER']='smtp.live.com'
-app.config['MAIL_PORT'] = 25
-app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
-app.config['MAIL_PASSWORD'] = 'Goodbye2012'
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
+# app.config['MAIL_SERVER']='smtp.live.com'
+# app.config['MAIL_PORT'] = 25
+# app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
+# app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+# app.config['MAIL_USE_TLS'] = True
+# app.config['MAIL_USE_SSL'] = False
 
-mail.init_app(app)
+# mail.init_app(app)
 
 CORS(app)
 
@@ -271,21 +271,21 @@ def get_datas():
 ############### 
 #  SEND EMAIL #
 ###############
-@app.route('/send_mail', methods=['GET'])
-def send_email():
-    mailId = request.args['mail_id']
-    mailCollection = mongo.db.mails
-    mailInfo = mailCollection.find()
-    for a in mailInfo:
-        msg = Message("Hello",
-                  sender=a['sender'],
-                  recipients=[a['recipient']])
-        print(a['sender'])
-        mail.send(msg)
-        print(a["recipient"])
-        print(a["subject"])
-    print(mailId)
-    return ('OK')
+# @app.route('/send_mail', methods=['GET'])
+# def send_email():
+#     mailId = request.args['mail_id']
+#     mailCollection = mongo.db.mails
+#     mailInfo = mailCollection.find()
+#     for a in mailInfo:
+#         msg = Message("Hello",
+#                   sender=a['sender'],
+#                   recipients=[a['recipient']])
+#         print(a['sender'])
+#         mail.send(msg)
+#         print(a["recipient"])
+#         print(a["subject"])
+#     print(mailId)
+#     return ('OK')
 
 
 if __name__ == "__main__":
