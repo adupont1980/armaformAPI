@@ -42,6 +42,11 @@ mongo = PyMongo(app)
 #         return str(o)
 #     return o.__str__
 
+@app.route('/custom_collection', methods=['GET'])
+def test():
+    print('sss')
+    return '{'ee':'ok'}'
+
 @app.route('/')
 def index():
     listMarques = []
