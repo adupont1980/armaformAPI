@@ -26,11 +26,11 @@ app = Flask(__name__)
 # CORS(app)
 
 
-app.config["MONGO_DBNAME"] = "heroku_p754dw74"
+# app.config["MONGO_DBNAME"] = "heroku_p754dw74"
 MONGO_URL = os.environ.get('MONGO_URL')
 if not MONGO_URL:
     MONGO_URL = "mongodb://localhost:27017";
-
+app.config['MONGO_URI'] = MONGO_URL
 # mongo = PyMongo(app, config_prefix='MONGO')
 # APP_URL = "http://127.0.0.1:5000"
 mongo = PyMongo(app)
