@@ -45,7 +45,7 @@ mongo = PyMongo(app)
 @app.route('/custom_collection', methods=['GET'])
 def test():
     print('sss')
-    return '{'ee':'ok'}'
+    return '{"ee":"ok"}'
 
 @app.route('/')
 def index():
