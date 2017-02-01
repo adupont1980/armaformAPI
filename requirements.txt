@@ -7,7 +7,7 @@ click==6.7
 aniso8601==0.82
 gunicorn==19.0.0
 itsdangerous==0.24
-pymongo==3.4
+
 Flask-PyMongo==0.4.1
 pytz==2014.4
 six==1.7.2

@@ -3,7 +3,6 @@ import os
 
 from flask import Flask, request, Response, jsonify
 from flask_pymongo import PyMongo
-import pymongo
 # from flask_cors import CORS, cross_origin
 import json
 from bson import json_util
