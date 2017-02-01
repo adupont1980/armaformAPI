@@ -1,2 +1,1 @@
-set FLASK_APP=hello.py
-python -m flask run --reload
+web gunicorn manage:app
