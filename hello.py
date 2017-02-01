@@ -9,7 +9,7 @@ from bson import json_util
 from bson.objectid import ObjectId
 # from flask_mail import Mail, Message
 
-mail = Mail()
+# mail = Mail()
 
 app = Flask(__name__)
 
