@@ -3,10 +3,13 @@ import os
 
 from flask import Flask, request, Response, jsonify
 from flask_pymongo import PyMongo
+import pymongo
 # from flask_cors import CORS, cross_origin
 import json
 from bson import json_util
 from bson.objectid import ObjectId
+
+
 # from flask_mail import Mail, Message
 
 # mail = Mail()
@@ -24,6 +27,7 @@ from bson.objectid import ObjectId
 
 # CORS(app)
 
+app = Flask(__name__)
 
 
 MONGO_URL = os.environ.get('MONGO_URL')
@@ -31,7 +35,6 @@ MONGO_URL = os.environ.get('MONGO_URL')
 if not MONGO_URL:
      MONGO_URL = "mongodb://localhost:27017";
 
-app = Flask(__name__)
 
 app.config['MONGO_URI'] = MONGO_URL
 mongo = PyMongo(app)
