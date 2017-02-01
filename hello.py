@@ -11,7 +11,6 @@ from bson.objectid import ObjectId
 
 # mail = Mail()
 
-app = Flask(__name__)
 
 
 # app.config['MAIL_SERVER']='smtp.live.com'
@@ -31,7 +30,12 @@ MONGO_URL = os.environ.get('MONGO_URL')
 # print(MONGO_URL)
 if not MONGO_URL:
      MONGO_URL = "mongodb://localhost:27017";
+
+app = Flask(__name__)
+
 app.config['MONGO_URI'] = MONGO_URL
+mongo = PyMongo(app)
+
 
 # connection = pymongo.MongoClient("ds135029.mlab.com", 35029)
 # db = connection["heroku_p754dw74"]
@@ -40,7 +44,7 @@ app.config['MONGO_URI'] = MONGO_URL
 
 # mongo = PyMongo(app, config_prefix='MONGO')
 # APP_URL = "http://127.0.0.1:5000"
-mongo = PyMongo(app)
+
 
 
 # def newEncoder(o):
