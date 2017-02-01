@@ -3,6 +3,7 @@ import os
 
 from flask import Flask, request, Response, jsonify
 from flask_pymongo import PyMongo
+import pymongo
 # from flask_cors import CORS, cross_origin
 import json
 from bson import json_util
@@ -26,12 +27,18 @@ app = Flask(__name__)
 # CORS(app)
 
 
-# app.config["MONGO_DBNAME"] = "heroku_p754dw74"
-MONGO_URL = os.environ.get('MONGO_URL')
-print(MONGO_URL)
-if not MONGO_URL:
-    MONGO_URL = "mongodb://localhost:27017";
-app.config['MONGO_URI'] = MONGO_URL
+
+# MONGO_URL = os.environ.get('MONGO_URL')
+# print(MONGO_URL)
+# if not MONGO_URL:
+#     MONGO_URL = "mongodb://localhost:27017";
+# app.config['MONGO_URI'] = MONGO_URL
+
+connection = pymongo.MongoClient(ds135029.mlab.com, 35029)
+db = connection["heroku_p754dw74"]
+db.authenticate("russianBallet", "Axonian456")
+
+
 # mongo = PyMongo(app, config_prefix='MONGO')
 # APP_URL = "http://127.0.0.1:5000"
 mongo = PyMongo(app)
