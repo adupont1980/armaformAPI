@@ -1,6 +1,7 @@
 """Entry point for the backend application."""
+import os
+# from flask_app import server
 
-from flask_app import server
 # -*- coding: utf-8 -*-
 from flask import Flask, request, Response, jsonify
 from flask_pymongo import PyMongo
@@ -34,8 +35,10 @@ CORS(app)
 
 
 app.config["MONGO_DBNAME"] = "auto"
+
 # mongo = PyMongo(app, config_prefix='MONGO')
 # APP_URL = "http://127.0.0.1:5000"
+
 mongo = PyMongo(app)
 
 

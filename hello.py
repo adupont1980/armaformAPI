@@ -283,18 +283,23 @@ def send_email():
     print(mailId)
     return ('OK')
 
-def main():
-    """Main entry point of the app."""
-    try:
-        http_server = WSGIServer(('0.0.0.0', 8080),
-                                 app,
-                                 log=logging,
-                                 error_log=logging)
 
-        http_server.serve_forever()
-    except Exception as exc:
-        logger.error(exc.message)
-    finally:
-        # get last entry and insert build appended if not completed
-        # Do something here
-        pass
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+
+# def main():
+#     """Main entry point of the app."""
+#     try:
+#         http_server = WSGIServer(('0.0.0.0', 8080),
+#                                  app,
+#                                  log=logging,
+#                                  error_log=logging)
+
+#         http_server.serve_forever()
+#     except Exception as exc:
+#         logger.error(exc.message)
+#     finally:
+#         # get last entry and insert build appended if not completed
+#         # Do something here
+#         pass
