@@ -26,7 +26,7 @@ app = Flask(__name__)
 # CORS(app)
 
 
-app.config["MONGO_DBNAME"] = "heroku_p754dw74"
+# app.config["MONGO_DBNAME"] = "heroku_p754dw74"
 MONGO_URL = os.environ.get('MONGO_URL')
 print(MONGO_URL)
 if not MONGO_URL:
@@ -45,11 +45,8 @@ mongo = PyMongo(app)
 
 @app.route('/')
 def index():
-    result = mongo.step.find_one()
-    # print(result)
     
-    return json.dumps(result, default=json_util.default)
-    # return 'SERVER STARTED'
+    return 'SERVER STARTED'
 
 # #################################
 # GET FORM DATA     _id param
@@ -286,8 +283,7 @@ def get_datas():
 #         print(a["subject"])
 #     print(mailId)
 #     return ('OK')
-if __name__ == "__main__":
-    app.run()
+
 
 # if __name__ == "__main__":
 #     port = int(os.environ.get("PORT", 5000))
