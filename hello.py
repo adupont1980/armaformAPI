@@ -28,6 +28,7 @@ app = Flask(__name__)
 
 # app.config["MONGO_DBNAME"] = "heroku_p754dw74"
 MONGO_URL = os.environ.get('MONGO_URL')
+print(MONGO_URL)
 if not MONGO_URL:
     MONGO_URL = "mongodb://localhost:27017";
 app.config['MONGO_URI'] = MONGO_URL
@@ -288,9 +289,9 @@ def get_datas():
 #     return ('OK')
 
 
-# if __name__ == "__main__":
-#     port = int(os.environ.get("PORT", 5000))
-#     app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
 # def main():
 #     """Main entry point of the app."""
