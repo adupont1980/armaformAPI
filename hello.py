@@ -39,7 +39,7 @@ if not MONGO_URL:
 
 app.config['MONGO_URI'] = MONGO_URL
 # mongo = PyMongo(app)
-client = MongoClient(MONGO_URL)
+mongo = MongoClient(MONGO_URL)
 db = client.test
 # connection = pymongo.MongoClient("ds135029.mlab.com", 35029)
 # db = connection["heroku_p754dw74"]
