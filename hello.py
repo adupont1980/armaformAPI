@@ -33,7 +33,7 @@ app = Flask(__name__)
 MONGO_URL = os.environ.get('MONGO_URL')
 # print(MONGO_URL)
 if not MONGO_URL:
-     MONGO_URL = "mongodb://localhost:27017";
+     MONGO_URL = "mongodb://localhost:27017/auto";
 
 
 app.config['MONGO_URI'] = MONGO_URL
