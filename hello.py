@@ -31,14 +31,20 @@ from bson.objectid import ObjectId
 app = Flask(__name__)
 
 
-MONGO_URL = os.environ.get('MONGO_URL')
+# MONGO_URL = os.environ.get('MONGO_URL')
+
+
 # print(MONGO_URL)
 if not MONGO_URL:
      MONGO_URL = "mongodb://localhost:27017/auto";
+     uri = 'mongodb://russianBallet:Axonian456@ds135029.mlab.com:35029' 
 
+client = MongoClient(os.environ.get('MONGO_URL')
 
-app.config['MONGO_URI'] = MONGO_URL
-mongo = PyMongo(app)
+db =client.get_default_database())
+
+# app.config['MONGO_URI'] = MONGO_URL
+# # mongo = PyMongo(app)
 # mongo = MongoClient(MONGO_URL)
 
 # mongo = client.test
