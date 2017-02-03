@@ -5,7 +5,7 @@ from flask import Flask, request, Response, jsonify
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 import pymongo
-# from flask_cors import CORS, cross_origin
+from flask_cors import CORS, cross_origin
 import json
 from bson import json_util
 from bson.objectid import ObjectId
@@ -26,11 +26,11 @@ from bson.objectid import ObjectId
 
 # mail.init_app(app)
 
-# CORS(app)
+
 
 app = Flask(__name__)
 
-
+CORS(app)
 # MONGO_URL = os.environ.get('MONGO_URL')
 
 
@@ -41,7 +41,7 @@ if not MONGO_URL:
 
 client = MongoClient(os.environ.get('MONGO_URL')
 
-db =client.get_default_database())
+# db =client.get_default_database())
 
 # app.config['MONGO_URI'] = MONGO_URL
 # # mongo = PyMongo(app)
@@ -162,6 +162,7 @@ def save_step():
 # GET STEPS CONFIGURATION
 ##########################
 @app.route('/step', methods=['GET'])
+@cross_origin()
 def get_steps():
     # LIST OF STEPS FROM SELECTED MASTER
     output = []
