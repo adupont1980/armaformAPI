@@ -11,27 +11,29 @@ from bson import json_util
 from bson.objectid import ObjectId
 
 
-# from flask_mail import Mail, Message
+from flask_mail import Mail, Message
 
-# mail = Mail()
+mail = Mail()
 
 
 
-# app.config['MAIL_SERVER']='smtp.live.com'
-# app.config['MAIL_PORT'] = 25
-# app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
-# app.config['MAIL_PASSWORD'] = 'Goodbye2012'
-# app.config['MAIL_USE_TLS'] = True
-# app.config['MAIL_USE_SSL'] = False
-
-# mail.init_app(app)
 
 
 
 app = Flask(__name__)
 
+mail.init_app(app)
+
+app.config['MAIL_SERVER']='smtp.live.com'
+app.config['MAIL_PORT'] = 25
+app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
+app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+
 CORS(app)
 MONGO_URL = os.environ.get('MONGO_URL')
+
 
 
 if not MONGO_URL:
@@ -66,7 +68,7 @@ def index():
     
     return 'SERVER STARTED'
 
-# #################################
+# ##d###############################
 # GET FORM DATA     _id param
 ##################################
 @app.route('/getFormData', methods=['GET'])
@@ -102,6 +104,7 @@ def get_data():
     condition = '{'
     for (name, value) in zip(filtersName,filtersValue):
         if (value != ''):
+            print(value)
             condition = condition + '"' + name + '":"' + value +'",' 
             isFiltered = True
             #condition = '{"' + filtersName[i] + '":"' + filtersValue[i] +'"}'
@@ -198,77 +201,100 @@ def get_steps():
 @app.route('/data_grid', methods=['GET'])
 def get_datas():
     try:
+        print('start grid')
         dataCollection = mongo.db.datas
         gridCollection = mongo.db.grids
         
-        cols = gridCollection.find_one({"name":"grid1"}, {"cols": 1, "_id":1})
+        grid = gridCollection.find_one({"name":"ballet"}, {"cols": 1, "_id":1})
         data = dataCollection.find()
-        print(cols['cols'])
+        print(grid)
+        if 'data' in grid['cols'][0]: 
+            print(grid['cols'][0]['data'])
+        
+        if 'field_panel_values' in grid['cols'][2]: 
+            print(grid['cols'][2]['field_panel_values'][0]['data'])
+        
+        print('******************************************')
+
         # try:
         #     record = cols.next()
         # except StopIteration:
-        #     print("No columns in the cursor grid!")
+        #     print("No columns  in the cursor grid!")
         # print(record)
         # for col in cols:
         #     print(col['cols'])
         output = []
-        output.append({'colNames': cols['cols']})
-        
+        output.append({'config': grid['cols']})
+        print('startDataCollections')
+        # Pour chaque élement de la collection data
         for s in dataCollection.find():
             print(s)
             # print(str(s["_id"]))
             record = {"step_id": str(s["step_id"])}
             record.update({"_id": str(s["_id"])})
             # READ ADD COLS FROM DATA GRID CONFIG
-            for colName in cols['cols']:
+            listValuesFieldPanel = []
+            for dicCol in grid['cols']:
                 # colsName.append(colName) 
-                print(colName)
+                if 'field_panel_name' in dicCol: 
+                    print('dans field panel')
+                    print(dicCol['field_panel_values'][0]['data'])
+                    print(dicCol['field_panel_name'])
                 # print("value")
                 # print(s[colName])
-                if isinstance(colName,dict):
+                   
+                    
                     # print(colName)
                     # print('is dict')
-                    for keyName in colName:
-                        # print("keyName " + keyName )
-                        # print("keyName: " + keyName)
-                        # print(colName[keyName])
-                        tmpField = {}
+                    # for keyName in dicCol:
+                    #      print("keyName " + keyName )
+                    #     # print(colName[keyName])
+                    #     # 
                         
-                        for i,val in enumerate(colName[keyName]):
-                            try:
-                                # print("val: " +val)
-                                tmpFieldValue = ''
-                                #  value du champs field (ex value of profile.nom)
-                                # print(s[keyName][i][val])
-                                # print(val)
-                                # print(s[keyName][0][val])
-                                # if s[keyName][0][val] != '':
-                                #     print('ici')
-                            #     # print('169' + val)
-                            #     print(s[keyName][0][val])
+                    for i,val in enumerate(dicCol['field_panel_values']):
+                        try:
+                            # print("val: " +val)
+                            print(i)
+                            print(val)
+                            tmpFieldValue = ''
+                            #  value du champs field (ex value of profile.nom)
+                            # print(s[keyName][i][val])
+                            # print(val)
+                            # print(s[keyName][0][val])
+                            # if s[keyName][0][val] != '':
+                            #     print('ici')
+                        #     # print('169' + val)
+                        #     print(s[keyName][0][val])
+                            cle = dicCol['field_panel_name'] + '_' + val['data']
+                            valeur = s[dicCol['field_panel_name']][i][val['data']]
+                            record.update({cle:valeur})
+                            # listValuesFieldPanel.append({val['data']: s[dicCol['field_panel_name']][i][val['data']]})
+                            # tmpField.update({val['data']: s[dicCol['field_panel_name']][i][val['data']]})
+                            print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+                            # print(listValuesFieldPanel[i])
+                            # newKeyName = keyName + '_' + val
+                            # tmpFieldValue = s[keyName][i][val]
+                            # if(tmpFieldValue != ''):
+                            #     # print(newKeyName)
+                            #     # print("tmpFieldValue "+  tmpFieldValue)
                                 
-                                # tmpField.update({val: s[keyName][i][val]})
-                                newKeyName = keyName + '_' + val
-                                # print('keyname: 185 ' + newKeyName)
-                                tmpFieldValue = s[keyName][i][val]
-                                if(tmpFieldValue != ''):
-                                    # print(newKeyName)
-                                    # print("tmpFieldValue "+  tmpFieldValue)
-                                    
-                                    record.update({newKeyName: tmpFieldValue})
-                            #     print(record)
-                            except KeyError:
-                                print('not defined')
-                        
+                            #     record.update({newKeyName: tmpFieldValue})
+                        #     print(record)
+                        except KeyError:
+                            print('not defined')
+                    # record.update({dicCol['field_panel_name']: listValuesFieldPanel})    
                 else:
-                    print('not dic')
-                    record.update({colName: s[colName]})
+                    print(dicCol['data'])
+                    print(dicCol['title'])
+                    print(s[dicCol['data']])
+                    record.update({dicCol['data']: s[dicCol['data']]})
+                    # record.update({'title': dicCol['title']})
             print(record)
-            
+            print(listValuesFieldPanel)
             output.append(record)
             
         
-        # print(output)
+        # p rint(output)
 
         # cursor = eval(data)
 
@@ -287,21 +313,21 @@ def get_datas():
 ############### 
 #  SEND EMAIL #
 ###############
-# @app.route('/send_mail', methods=['GET'])
-# def send_email():
-#     mailId = request.args['mail_id']
-#     mailCollection = mongo.db.mails
-#     mailInfo = mailCollection.find()
-#     for a in mailInfo:
-#         msg = Message("Hello",
-#                   sender=a['sender'],
-#                   recipients=[a['recipient']])
-#         print(a['sender'])
-#         mail.send(msg)
-#         print(a["recipient"])
-#         print(a["subject"])
-#     print(mailId)
-#     return ('OK')
+@app.route('/send_mail', methods=['GET'])
+def send_email():
+    mailId = request.args['mail_id']
+    mailCollection = mongo.db.mails
+    mailInfo = mailCollection.find()
+    for a in mailInfo:
+        msg = Message("Hello",
+                  sender=a['sender'],
+                  recipients=[a['recipient']])
+        print(a['sender'])
+        mail.send(msg)
+        print(a["recipient"])
+        print(a["subject"])
+    print(mailId)
+    return ('OK')
 
 
 if __name__ == "__main__":
