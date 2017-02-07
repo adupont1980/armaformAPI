@@ -11,9 +11,9 @@ from bson import json_util
 from bson.objectid import ObjectId
 
 
-from flask_mail import Mail, Message
+# from flask_mail import Mail, Message
 
-mail = Mail()
+# mail = Mail()
 
 
 
@@ -22,14 +22,14 @@ mail = Mail()
 
 app = Flask(__name__)
 
-mail.init_app(app)
+# mail.init_app(app)
 
-app.config['MAIL_SERVER']='smtp.live.com'
-app.config['MAIL_PORT'] = 25
-app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
-app.config['MAIL_PASSWORD'] = 'Goodbye2012'
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
+# app.config['MAIL_SERVER']='smtp.live.com'
+# app.config['MAIL_PORT'] = 25
+# app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
+# app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+# app.config['MAIL_USE_TLS'] = True
+# app.config['MAIL_USE_SSL'] = False
 
 CORS(app)
 MONGO_URL = os.environ.get('MONGO_URL')
@@ -207,14 +207,7 @@ def get_datas():
         
         grid = gridCollection.find_one({"name":"ballet"}, {"cols": 1, "_id":1})
         data = dataCollection.find()
-        print(grid)
-        if 'data' in grid['cols'][0]: 
-            print(grid['cols'][0]['data'])
-        
-        if 'field_panel_values' in grid['cols'][2]: 
-            print(grid['cols'][2]['field_panel_values'][0]['data'])
-        
-        print('******************************************')
+
 
         # try:
         #     record = cols.next()
@@ -270,7 +263,7 @@ def get_datas():
                             record.update({cle:valeur})
                             # listValuesFieldPanel.append({val['data']: s[dicCol['field_panel_name']][i][val['data']]})
                             # tmpField.update({val['data']: s[dicCol['field_panel_name']][i][val['data']]})
-                            print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+                           
                             # print(listValuesFieldPanel[i])
                             # newKeyName = keyName + '_' + val
                             # tmpFieldValue = s[keyName][i][val]
