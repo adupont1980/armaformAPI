@@ -231,8 +231,8 @@ def get_datas():
                 # colsName.append(colName) 
                 if 'field_panel_name' in dicCol: 
                     print('dans field panel')
-                    print(dicCol['field_panel_values'][0]['data'])
                     print(dicCol['field_panel_name'])
+                    print(dicCol['field_panel_values'])
                 # print("value")
                 # print(s[colName])
                    
@@ -246,9 +246,13 @@ def get_datas():
                         
                     for i,val in enumerate(dicCol['field_panel_values']):
                         try:
-                            # print("val: " +val)
-                            print(i)
                             print(val)
+                            # x = val.index({'data':'email'})
+                            # print(x)
+                            print("for field_panel_values: ")
+                            print(i)
+                            print(val['data'])
+                            print('***************************************')
                             tmpFieldValue = ''
                             #  value du champs field (ex value of profile.nom)
                             # print(s[keyName][i][val])
@@ -259,7 +263,21 @@ def get_datas():
                         #     # print('169' + val)
                         #     print(s[keyName][0][val])
                             cle = dicCol['field_panel_name'] + '_' + val['data']
-                            valeur = s[dicCol['field_panel_name']][i][val['data']]
+                            print(cle)
+                            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@ avant Val")
+                            print(s[dicCol['field_panel_name']])
+                            print(val['data'])
+                           
+                            # x = s[dicCol['field_panel_name']].index({'data': val['data']})
+                            # print('ddddddddddddddddddddddddddddd ' + x)
+                            valeur = next((item for item in s[dicCol['field_panel_name']] if item.get(val['data'])), None)[val['data']]
+                            # valeur = s[dicCol['field_panel_name']][i][val['data']]
+                            # newVal = 
+                            print('--------------------------------------------')
+                            print(dicCol)
+                            print('+++++++++++++++++++++++++++++++++++++++++++++++')
+                            print(s[dicCol['field_panel_name']][i])
+                            # print(valeur)
                             record.update({cle:valeur})
                             # listValuesFieldPanel.append({val['data']: s[dicCol['field_panel_name']][i][val['data']]})
                             # tmpField.update({val['data']: s[dicCol['field_panel_name']][i][val['data']]})
