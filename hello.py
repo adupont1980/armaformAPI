@@ -11,9 +11,9 @@ from bson import json_util
 from bson.objectid import ObjectId
 
 
-# from flask_mail import Mail, Message
+from flask_mail import Mail, Message
 
-# mail = Mail()
+mail = Mail()
 
 
 
@@ -22,14 +22,14 @@ from bson.objectid import ObjectId
 
 app = Flask(__name__)
 
-# mail.init_app(app)
 
-# app.config['MAIL_SERVER']='smtp.live.com'
-# app.config['MAIL_PORT'] = 25
-# app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
-# app.config['MAIL_PASSWORD'] = 'Goodbye2012'
-# app.config['MAIL_USE_TLS'] = True
-# app.config['MAIL_USE_SSL'] = False
+
+app.config['MAIL_SERVER']='smtp.live.com'
+app.config['MAIL_PORT'] = 25
+app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
+app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
 
 CORS(app)
 MONGO_URL = os.environ.get('MONGO_URL')
@@ -41,7 +41,7 @@ if not MONGO_URL:
 
 app.config['MONGO_URI'] = MONGO_URL
 mongo = PyMongo(app)
-
+mail.init_app(app)
 
 
 # mongo = MongoClient(MONGO_URL)
@@ -327,18 +327,47 @@ def get_datas():
 @app.route('/send_mail', methods=['GET'])
 def send_email():
     mailId = request.args['mail_id']
+    formId = request.args['form_id']
+    
     mailCollection = mongo.db.mails
-    mailInfo = mailCollection.find()
-    for a in mailInfo:
-        msg = Message("Hello",
-                  sender=a['sender'],
-                  recipients=[a['recipient']])
-        print(a['sender'])
+    dataCollection = mongo.db.datas
+
+    mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
+    formData = dataCollection.find_one({"_id":ObjectId(formId)})
+
+    try:
+        # GET INFO TO PUT IN TEMPLATE
+        age      = formData['age']
+        xp       = formData['years_of_experience']
+        duration = formData['duration']
+        course   = formData['course_type']
+        
+        profile  = formData['profile']
+        nom      = profile[0]['nom']
+        email    = profile[2]['email']
+        country  = profile[3]['country']
+
+        print(mailInfo)
+        sender   = mailInfo['sender']
+
+        # PREPARE CONFIRMATION MSG
+        html = "Thank your for your request <br> Nom:" + nom + "<br> Course selected: " + course + "<br> Duration of the course: " + duration
+        
+        msg = Message("Russian ballet, Automatic email",
+                  sender=sender,
+                  html=html,
+                  recipients=[email])
+                  
+                  
         mail.send(msg)
-        print(a["recipient"])
-        print(a["subject"])
-    print(mailId)
+
+    except StopAsyncIteration:
+        print("Empty cursor")
+
     return ('OK')
+
+
+
 
 
 if __name__ == "__main__":
