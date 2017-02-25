@@ -9,7 +9,7 @@ from flask_cors import CORS, cross_origin
 import json
 from bson import json_util
 from bson.objectid import ObjectId
-
+from datetime import datetime
 
 from flask_mail import Mail, Message
 
@@ -89,6 +89,7 @@ def get_form_data():
 
 ###################################
 # GET DATA FROM CUSTOM COLLECTION
+###################################
 @app.route('/custom_collection', methods=['GET'])
 def get_data():
     #  TODO TESTER SI PLUSIEURS VALEURS SONT PASSEES DANS LE FILTRE
@@ -148,6 +149,9 @@ def save_step():
         print(obj)
         objToSave.update(obj)
 
+    currentDate = { "currentDate" : datetime.now()}
+    objToSave.update(currentDate)
+
     new_id = mongo.db.datas.insert(objToSave)
     # print(new_id)
     return str(new_id)
@@ -166,29 +170,28 @@ def save_step():
 def get_steps():
     # LIST OF STEPS FROM SELECTED MASTER
     output = []
+    appName = request.args['app_name']
+    master = mongo.db.master.find_one({"name": appName})
     
-    masterSteps = mongo.db.master.find({})
-    
-    for master in masterSteps:
-        print(master['name'])
-        print(master)
-        # print(m['save_button'])
-        
-        # master name: TO FIND WHICH STEPS WE NEED
-        # master type: WORKFLOW || FORM 
+    # for master in masterSteps:
 
-        Steps = mongo.db.steps.find({"master": master['name']}).sort("step_id",1)
-        # .sort("step_id",1)  {$elemMatch:{$eq:"auto"}}}, {"_id":0})
-        for step in Steps:
-            print(step['step_id'])
-            output.append({
-            "step_id": step['step_id'],
-            "master_name": master['name'],
-            "master_type": master['type'],
-            "name": step['name'],
-            "type": step['type'],
-            "configuration": step['configuration']
-            })
+    # print(m['save_button'])
+        
+    # master name: TO FIND WHICH STEPS WE NEED
+    # master type: WORKFLOW || FORM 
+
+    Steps = mongo.db.steps.find({"master": appName}).sort("step_id",1)
+    # .sort("step_id",1)  {$elemMatch:{$eq:"auto"}}}, {"_id":0})
+    for step in Steps:
+        print(step['step_id'])
+        output.append({
+        "step_id": step['step_id'],
+        "master_name": master['name'],
+        "master_type": master['type'],
+        "name": step['name'],
+        "type": step['type'],
+        "configuration": step['configuration']
+        })
 
     return jsonify(output)
 
@@ -200,15 +203,21 @@ def get_steps():
 ########################
 @app.route('/data_grid', methods=['GET'])
 def get_datas():
-    try:
+    # try:
+        gridName = request.args['grid_name']
+        print(gridName)
         print('start grid')
         dataCollection = mongo.db.datas
         gridCollection = mongo.db.grids
         
-        grid = gridCollection.find_one({"name":"ballet"}, {"cols": 1, "_id":1})
-        data = dataCollection.find()
+        grid = gridCollection.find_one({"name":gridName})
+        filterBy = grid['filtered'][0]['by']
+        valueBy = grid['filtered'][0]['value_by']
+        
 
+        # data = dataCollection.find({filterBy:valueBy})
 
+        
         # try:
         #     record = cols.next()
         # except StopIteration:
@@ -220,13 +229,15 @@ def get_datas():
         output.append({'config': grid['cols']})
         print('startDataCollections')
         # Pour chaque élement de la collection data
-        for s in dataCollection.find():
+        for s in dataCollection.find({filterBy:valueBy}):
+            print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
             print(s)
             # print(str(s["_id"]))
             record = {"step_id": str(s["step_id"])}
             record.update({"_id": str(s["_id"])})
             # READ ADD COLS FROM DATA GRID CONFIG
             listValuesFieldPanel = []
+            # pour chaque element defini dans la collection grid
             for dicCol in grid['cols']:
                 # colsName.append(colName) 
                 if 'field_panel_name' in dicCol: 
@@ -270,7 +281,12 @@ def get_datas():
                            
                             # x = s[dicCol['field_panel_name']].index({'data': val['data']})
                             # print('ddddddddddddddddddddddddddddd ' + x)
-                            valeur = next((item for item in s[dicCol['field_panel_name']] if item.get(val['data'])), None)[val['data']]
+                            valeur = next((item for item in s[dicCol['field_panel_name']] if item.get(val['data'])), '')
+                            if (valeur != ''):
+                                valeur = valeur[val['data']]
+                            # valeur = next((item for item in s[dicCol['field_panel_name']] if item.get(val['data'])), None)[val['data']]
+                            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                            print(valeur)
                             # valeur = s[dicCol['field_panel_name']][i][val['data']]
                             # newVal = 
                             print('--------------------------------------------')
@@ -295,6 +311,7 @@ def get_datas():
                             print('not defined')
                     # record.update({dicCol['field_panel_name']: listValuesFieldPanel})    
                 else:
+                    print('field_panel_name not in dic')
                     print(dicCol['data'])
                     print(dicCol['title'])
                     print(s[dicCol['data']])
@@ -303,7 +320,9 @@ def get_datas():
             print(record)
             print(listValuesFieldPanel)
             output.append(record)
-            
+            print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+            print(grid)
+            print(grid['filtered'][0]['by'])
         
         # p rint(output)
 
@@ -311,15 +330,52 @@ def get_datas():
 
     # docs_list  = list(data)
     # print(docs_list)
+        print(output)
         return jsonify(output)
 
-    except (ValueError, KeyError, TypeError):
-        resp = Response({"JSON Format Error."}, status=400, mimetype='application/json')
-        return resp
+    # except (ValueError):
+    #     print("Value Error")
+    #     return Response({"JSON Format Error."}, status=400, mimetype='application/json')
+    # except (KeyError):
+    #     print(KeyError)
+    #     return Response({"JSON Format Error."}, status=400, mimetype='application/json')
+    # except (TypeError):
+    #     print(TypeError)
+    #     return Response({"JSON Format Error."}, status=400, mimetype='application/json')
+        # resp = Response({"JSON Format Error."}, status=400, mimetype='application/json')
+        
 
     # return jsonify(json.dumps(docs_list, default=json_util.default))
 
     # return jsonify(docs_list)
+
+###################
+# GET LIST OF GRIDS
+###################"
+@app.route('/get_grids', methods=['GET'])
+def getGrids():
+    
+    # MAYBE WE CAN REMOVE THIS ARG IF WE USE 1 APP FOR ONLY ONE PROJECT
+    # master = request.args['master']
+
+    gridCollection = mongo.db.grids
+
+    gridList = gridCollection.find({"activated": True })
+    output = []
+    try:
+        for grid in gridList:
+            print(grid['name'])
+            output.append({
+            "name": grid['name']
+            })
+
+    
+
+    except StopAsyncIteration:
+        print("Empty cursor")
+
+    return jsonify(output) 
+
 
 ############### 
 #  SEND EMAIL #
