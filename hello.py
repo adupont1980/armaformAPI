@@ -161,6 +161,25 @@ def save_step():
     # ) 
     # return json_dumps(id, default=newEncoder)
 
+##################################
+# UPDATE CHECKBOX 
+###################################
+@app.route('/update_checkbox', methods=['POST'])
+@cross_origin()
+def updateCheckBox():
+    data = request.get_json(force=True)
+    idRecord = data['_id']
+    newVal = data['value']
+    new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
+    print(new_id)
+    print(idRecord)
+    # objToSave = {"result": "ok"}
+    # for obj in data:
+    #     print(obj)
+    #     objToSave.update(obj)
+    #print()
+    return "ok"
+
 
 # ########################
 # GET STEPS CONFIGURATION
@@ -202,6 +221,7 @@ def get_steps():
 #   GET DATA FOR GRID
 ########################
 @app.route('/data_grid', methods=['GET'])
+@cross_origin()
 def get_datas():
     # try:
         gridName = request.args['grid_name']
@@ -211,10 +231,17 @@ def get_datas():
         gridCollection = mongo.db.grids
         
         grid = gridCollection.find_one({"name":gridName})
-        filterBy = grid['filtered'][0]['by']
-        valueBy = grid['filtered'][0]['value_by']
         
+        if 'filtered' in grid:
+            objFilter = {}
+            for i, val in enumerate(grid['filtered']):
+                obj = { grid['filtered'][i]['by']:grid['filtered'][i]['value_by'] }
+                objFilter.update(obj)
 
+            datas = dataCollection.find(objFilter)
+        else:
+            datas = dataCollection.find()
+        print(datas)
         # data = dataCollection.find({filterBy:valueBy})
 
         
@@ -229,7 +256,7 @@ def get_datas():
         output.append({'config': grid['cols']})
         print('startDataCollections')
         # Pour chaque élement de la collection data
-        for s in dataCollection.find({filterBy:valueBy}):
+        for s in datas:
             print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
             print(s)
             # print(str(s["_id"]))
@@ -310,19 +337,34 @@ def get_datas():
                         except KeyError:
                             print('not defined')
                     # record.update({dicCol['field_panel_name']: listValuesFieldPanel})    
+                elif 'type' in dicCol: 
+                    if dicCol['type'] == 'checkbox':
+                        print('ùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùù')
+                        print(dicCol['type'])
+                        
+                        if dicCol['data'] in s:
+                            record.update({dicCol['data']: s[dicCol['data']]})
+                        else:
+                            record.update({dicCol['data']: False})
+                        
+                        
                 else:
+                    #SI PAS FIELD PANEL ALORS COLONNE CLASIQUE TITLE + DATA
                     print('field_panel_name not in dic')
                     print(dicCol['data'])
                     print(dicCol['title'])
                     print(s[dicCol['data']])
                     record.update({dicCol['data']: s[dicCol['data']]})
                     # record.update({'title': dicCol['title']})
+            
+            
+
             print(record)
             print(listValuesFieldPanel)
             output.append(record)
             print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
             print(grid)
-            print(grid['filtered'][0]['by'])
+            # print(grid['filtered'][0]['by'])
         
         # p rint(output)
 
