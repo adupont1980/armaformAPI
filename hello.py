@@ -10,7 +10,9 @@ import json
 from bson import json_util
 from bson.objectid import ObjectId
 from datetime import datetime
-
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 from flask_mail import Mail, Message
 
 mail = Mail()
@@ -21,8 +23,8 @@ mail = Mail()
 
 
 app = Flask(__name__)
-
-
+CORS(app)
+MONGO_URL = os.environ.get('MONGO_URL')
 
 app.config['MAIL_SERVER']='smtp.live.com'
 app.config['MAIL_PORT'] = 25
@@ -31,11 +33,10 @@ app.config['MAIL_PASSWORD'] = 'Goodbye2012'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 
-CORS(app)
-MONGO_URL = os.environ.get('MONGO_URL')
 
 
 
+#DEV PURPOSE
 if not MONGO_URL:
      MONGO_URL = "mongodb://localhost:27017/auto";
 
@@ -43,6 +44,12 @@ app.config['MONGO_URI'] = MONGO_URL
 mongo = PyMongo(app)
 mail.init_app(app)
 
+
+cloudinary.config( 
+  cloud_name = "htamml3fv", 
+  api_key = "479571498319886", 
+  api_secret = "wBUZ-eReQJpK_mninA2SMIP7WzI" 
+)
 
 # mongo = MongoClient(MONGO_URL)
 
@@ -138,6 +145,35 @@ def get_data():
     #     # output.append({lstField[0]: s[lstFi eld[0]])}
     #return output
 
+###################################
+# UPLOAD A FILE TO FILESTACK      #
+###################################
+
+@app.route('/store_file', methods=['POST'])
+@cross_origin()
+def storeFile():
+    print(request.files)
+    data = request.files.get('uploadFile')
+    print(data)
+    
+    print("store_file")
+    result = cloudinary.uploader.upload(data)
+    if result:
+        jsonResult = {
+            'id_img' : result['public_id'],
+            'url': result['url'] 
+        }
+    print(result['url'])
+    # if 'file' not in data:
+    #     print("not a file")
+    # else:
+    #     print("data is a file")
+    # file = request.files['FileStorage']
+    # print(file.filename)
+    # value = request(force=True)
+    print('ok')
+    return jsonify(jsonResult)
+
 ####################################
 # SAVE CURRENT STEP INTO COLLECTION
 #####################################
@@ -173,6 +209,8 @@ def updateCheckBox():
     new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
     print(new_id)
     print(idRecord)
+    
+    
     # objToSave = {"result": "ok"}
     # for obj in data:
     #     print(obj)
@@ -191,7 +229,7 @@ def get_steps():
     output = []
     appName = request.args['app_name']
     master = mongo.db.master.find_one({"name": appName})
-    
+    print(master)
     # for master in masterSteps:
 
     # print(m['save_button'])
@@ -201,17 +239,27 @@ def get_steps():
 
     Steps = mongo.db.steps.find({"master": appName}).sort("step_id",1)
     # .sort("step_id",1)  {$elemMatch:{$eq:"auto"}}}, {"_id":0})
+
+    
     for step in Steps:
         print(step['step_id'])
+        
+        if 'conditions' in step: 
+            conditions = step['conditions']
+        else:
+            conditions = []
+        
         output.append({
         "step_id": step['step_id'],
         "master_name": master['name'],
         "master_type": master['type'],
         "name": step['name'],
         "type": step['type'],
-        "configuration": step['configuration']
+        "configuration": step['configuration'],
+        "conditions": conditions
         })
-
+        
+ 
     return jsonify(output)
 
 
@@ -240,7 +288,7 @@ def get_datas():
 
             datas = dataCollection.find(objFilter)
         else:
-            datas = dataCollection.find()
+            datas = dataCollection.find({})
         print(datas)
         # data = dataCollection.find({filterBy:valueBy})
 
