@@ -13,16 +13,19 @@ from datetime import datetime
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+import jwt
 from flask_mail import Mail, Message
+from werkzeug.datastructures import ImmutableMultiDict
+from passlib.hash import pbkdf2_sha256
+
 
 mail = Mail()
 
-
-
-
-
-
 app = Flask(__name__)
+
+
+
+
 CORS(app)
 MONGO_URL = os.environ.get('MONGO_URL')
 
@@ -33,8 +36,7 @@ app.config['MAIL_PASSWORD'] = 'Goodbye2012'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 
-
-
+# app.register_blueprint(auth)
 
 #DEV PURPOSE
 if not MONGO_URL:
@@ -69,6 +71,19 @@ cloudinary.config(
 #         return str(o)
 #     return o.__str__
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass
+    try:
+        import unicodedata
+        unicodedata.numeric(s)
+        return True
+    except (TypeError, ValueError):
+        pass
+    return False
 
 @app.route('/')
 def index():
@@ -100,10 +115,12 @@ def get_form_data():
 @app.route('/custom_collection', methods=['GET'])
 def get_data():
     #  TODO TESTER SI PLUSIEURS VALEURS SONT PASSEES DANS LE FILTRE
-    collectionName = request.args['collName']
+    collectionName = request.args['col_name']
+    print(collectionName)
     filtersName = request.args['filters_name'].split(',')
     filtersValue = request.args['filters_value'].split(',')
     valueToSelect = request.args['select']
+    returnType = request.args['return_type']
     # key = ', {"'+ valueToSelect + '":1}'
     key = 'key: "'+ valueToSelect + '",'
 
@@ -112,9 +129,14 @@ def get_data():
     condition = '{'
     for (name, value) in zip(filtersName,filtersValue):
         if (value != ''):
-            print(value)
-            condition = condition + '"' + name + '":"' + value +'",' 
             isFiltered = True
+            if (is_number(value) and name == 'year_range'):
+                print("convert")
+                condition = condition + '"' + name + '":' + value +',' 
+            else:
+                print(value)
+                condition = condition + '"' + name + '":"' + value +'",' 
+                
             #condition = '{"' + filtersName[i] + '":"' + filtersValue[i] +'"}'
             
             # SI LA COLLECTION CONTIENT PLUSIEURS CHAMPS, SELECT CONTIENT CELUI A RAMENER
@@ -123,22 +145,55 @@ def get_data():
     print(condition)
     condition = condition[:-1]
     condition = condition + '}'     
-    if (isFiltered):
-        collection = 'mongo.db.'+collectionName+'.find('+ condition +').distinct("'+valueToSelect+'")'
+    if returnType == 'btn':
+        print('**********************************')
+        # IF WE NEED TO TREAT A DATE RANGE
+        if (valueToSelect == "date_debut"):
+            collection = 'mongo.db.vehicules.aggregate([{"$match" : { "modele" : "'+ filtersValue[0]  +'" }},{ "$group": { "_id": "$modele", "maxDate" : { "$max": "$date_debut"}, "minDate": {"$min": "$date_fin"}}}])'
+            cursor = eval(collection)
+
+            docs_list  = list(cursor)
+
+            minDate = docs_list[0]['minDate']
+            maxDate = docs_list[0]['maxDate']
+
+            output = []
+            
+            for i in range(minDate,maxDate):
+                output.append(i)
+
+            output.append(maxDate)
+
+            return jsonify(output)
+
+        else:
+            print('iiiiiiiiiiiiiiiiiiiiiii')
+            print(isFiltered)
+            if (isFiltered):
+                collection = 'mongo.db.'+collectionName+'.find('+ condition +').distinct("'+valueToSelect+'")'
+                print(collection)
+            else:
+                collection = 'mongo.db.'+collectionName+'.find().distinct("'+valueToSelect+'")'
+            
+            cursor = eval(collection)
+
+            docs_list  = list(cursor)
+
+            docs_list.sort()
+            print(docs_list)
+            return json.dumps(docs_list, default=json_util.default)
+            
+
+
     else:
-        collection = 'mongo.db.'+collectionName+'.find().distinct("'+valueToSelect+'")'
-        
-    
-    print(collection)
-
-    cursor = eval(collection)
-
-    docs_list  = list(cursor)
-
-    docs_list.sort()
-    print(docs_list)
-    return json.dumps(docs_list, default=json_util.default)
-
+        output = []
+        collection = 'mongo.db.'+collectionName+'.find().sort("order", 1)'
+                
+        cursor = eval(collection)
+        for c in cursor:
+            print(c['name'])
+            output.append({ "name": c['name'], "url": c['url'], "list": c['modeles']})
+        return jsonify(output)
     # for doc in cursor:
     #     json_doc = json.dumps(doc, default=json_util.default)
     #     output.append(json_doc)
@@ -146,24 +201,34 @@ def get_data():
     #return output
 
 ###################################
-# UPLOAD A FILE TO FILESTACK      #
+# UPLOAD A FILE TO CLOUDIFIER      #
 ###################################
 
 @app.route('/store_file', methods=['POST'])
 @cross_origin()
 def storeFile():
+    print(request)
     print(request.files)
-    data = request.files.get('uploadFile')
-    print(data)
     
+    imd = request.files
+    fileList = imd.getlist('uploadFile')
+    # data = request.files.get('uploadFile')
+    # print(data)
+    print(fileList)
     print("store_file")
-    result = cloudinary.uploader.upload(data)
-    if result:
-        jsonResult = {
-            'id_img' : result['public_id'],
-            'url': result['url'] 
-        }
-    print(result['url'])
+    
+    resultList = []
+    for f in fileList:
+        
+        result = cloudinary.uploader.upload(f)
+        if result:
+            jsonResult = {
+                'id_img' : result['public_id'],
+                'file_url': result['url'],
+                'step_name': f.filename 
+            }
+            resultList.append(jsonResult)
+    print(resultList)
     # if 'file' not in data:
     #     print("not a file")
     # else:
@@ -172,7 +237,7 @@ def storeFile():
     # print(file.filename)
     # value = request(force=True)
     print('ok')
-    return jsonify(jsonResult)
+    return jsonify(resultList)
 
 ####################################
 # SAVE CURRENT STEP INTO COLLECTION
@@ -180,14 +245,20 @@ def storeFile():
 @app.route('/save_datas', methods=['POST'])
 def save_step():
     data = request.get_json(force=True)
+    fileNameList = []
     objToSave = {}
     for obj in data:
-        print(obj)
+        # if 'file_uploaded' in obj:
+        #     fileNameList.append({"name": obj['nom'], "details": [{"file_url": obj['file_url'] }]})
+        #     print(obj['nom'])
+        # print(obj)
         objToSave.update(obj)
 
     currentDate = { "currentDate" : datetime.now()}
+    
     objToSave.update(currentDate)
-
+    print(objToSave)    
+    
     new_id = mongo.db.datas.insert(objToSave)
     # print(new_id)
     return str(new_id)
@@ -225,6 +296,7 @@ def updateCheckBox():
 @app.route('/step', methods=['GET'])
 @cross_origin()
 def get_steps():
+    
     # LIST OF STEPS FROM SELECTED MASTER
     output = []
     appName = request.args['app_name']
@@ -249,6 +321,7 @@ def get_steps():
         else:
             conditions = []
         
+               
         output.append({
         "step_id": step['step_id'],
         "master_name": master['name'],
@@ -262,6 +335,36 @@ def get_steps():
  
     return jsonify(output)
 
+########################
+# GET RECORD DETAILS   #
+########################
+@app.route('/grid_details', methods=['GET'])
+@cross_origin()
+def get_details():
+    objId = request.args['id']
+    print(objId)
+    dataCollection = mongo.db.datas
+    details = dataCollection.find_one({"_id":ObjectId(objId)})
+    # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
+    # print(details['import'])
+    print('jjjjjjjjjjjj')
+    # print(details)
+    return json.dumps(details, default=json_util.default)
+
+########################
+# GET TECH DETAILS   #
+########################
+@app.route('/tech_details', methods=['GET'])
+@cross_origin()
+def get_tech_details():
+    version = request.args['version']
+    dataCollection = mongo.db.vehicules
+    details = dataCollection.find_one({"version": version})
+    # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
+    # print(details['import'])
+    print('tech details')
+    # print(details)
+    return json.dumps(details, default=json_util.default)
 
 
 
@@ -301,7 +404,12 @@ def get_datas():
         # for col in cols:
         #     print(col['cols'])
         output = []
-        output.append({'config': grid['cols']})
+        
+        
+        if "details" in grid:
+            output.append({'config': grid['cols'],'config_details': grid['details']['fields']})
+        else:
+            output.append({'config': grid['cols']})
         print('startDataCollections')
         # Pour chaque élement de la collection data
         for s in datas:
@@ -333,8 +441,6 @@ def get_datas():
                     for i,val in enumerate(dicCol['field_panel_values']):
                         try:
                             print(val)
-                            # x = val.index({'data':'email'})
-                            # print(x)
                             print("for field_panel_values: ")
                             print(i)
                             print(val['data'])
@@ -405,13 +511,42 @@ def get_datas():
                     record.update({dicCol['data']: s[dicCol['data']]})
                     # record.update({'title': dicCol['title']})
             
+            print('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ')
+            print(grid)
+            print('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ')
             
-
-            print(record)
-            print(listValuesFieldPanel)
+            
+            if 'details' in grid:
+                
+                detailContent = []
+                # detailContent.append({"activated": True})
+                if 'activated' in grid['details']:
+                    # detailContent.append(dicDetails)
+                   
+                    for dicDetails in grid['details']['fields']:
+                        print(dicDetails)
+                        print('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ')
+                        if dicDetails['type'] == 'file_details':
+                            print(dicDetails['file_name'])
+                            print(s['version'])
+                            detailContent.append({"file_name": dicDetails['file_name'], "label": dicDetails['label'], "file_url": "blabla" })
+                        else:
+                            print(dicDetails['data'])
+                            print(s[dicDetails['data']])
+                            detailContent.append({dicDetails['data']:s[dicDetails['data']], "label": dicDetails['label'], "type":dicDetails['type'] })
+                        # print(dicDetails)
+                    record.update({"detail":detailContent, "details": {"activated": True}})
+                else:
+                    record.update({"details": {"activated": False}})
+            else:
+                record.update({"details": {"activated": False}})
+                # output.append(detailContent)
+            
+            # print(listValuesFieldPanel)
             output.append(record)
             print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-            print(grid)
+            print(record)
+            # print(grid)
             # print(grid['filtered'][0]['by'])
         
         # p rint(output)
@@ -512,9 +647,50 @@ def send_email():
 
     return ('OK')
 
+#####################
+# SIGNUP A NEW USER #
+#####################
+@app.route('/auth_signup', methods=['POST'])
+@cross_origin()
+def signup():
+    user = request.get_json()
+    # Add creation date 
+    user.update({ "date_creation" : datetime.now()})
 
-
-
+    # Encrypt password
+    user.update({"password": pbkdf2_sha256.hash(user['password'])})
+    
+    try:
+        new_id = mongo.db.users.insert(user)
+        return jsonify({"processed": True, "message": "User created" })
+        
+    except expression as identifier:
+        pass
+    
+@app.route('/auth_signin', methods=['POST'])
+@cross_origin()
+def signin():
+    credentials = request.get_json()
+    # Add creation date 
+    # user.update({ "date_creation" : datetime.now()})
+    # output = {}
+    print(credentials)
+    user = mongo.db.users.find_one({"email": credentials['email']})
+    print(user)
+    # print(user['password'])
+    if (user != None):
+        if (pbkdf2_sha256.verify(credentials['password'], user['password'])):
+            encoded = jwt.encode({'user': user['email']}, 'secret', algorithm='HS256')
+            print(encoded)
+            output = {"logged": True, "message": "User connected", "token": encoded, "user_id": user['_id'] }
+        else:
+            print('error')
+            output = {"logged": False, "message": "Erreur authentification" }
+    else:
+        output = {"logged": False, "message": "Erreur authentification" }
+    
+    return json.dumps(output, default=json_util.default)
+    # return output
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
