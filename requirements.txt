@@ -13,7 +13,5 @@ Flask-PyMongo==0.4.1
 pytz==2014.4
 six==1.7.2
 Flask-Mail==0.7.4
-cloudinary==1.0.0
+cloudinary==0.2.1
 poster==0.8.1
-psycopg2==2.4.5
-wsgiref==0.1.2
