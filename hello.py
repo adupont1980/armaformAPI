@@ -10,9 +10,9 @@ import json
 from bson import json_util
 from bson.objectid import ObjectId
 from datetime import datetime
-# import cloudinary 
-# import cloudinary.uploader
-# import cloudinary.api
+import cloudinary 
+import cloudinary.uploader
+import cloudinary.api
 import jwt
 from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
