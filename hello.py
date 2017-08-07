@@ -201,39 +201,39 @@ def get_data():
 # UPLOAD A FILE TO CLOUDIFIER      #
 ###################################
 
-# @app.route('/store_file', methods=['POST'])
-# @cross_origin()
-# def storeFile():
-#     print(request)
-#     print(request.files)
+@app.route('/store_file', methods=['POST'])
+@cross_origin()
+def storeFile():
+    print(request)
+    print(request.files)
     
-#     imd = request.files
-#     fileList = imd.getlist('uploadFile')
-#     # data = request.files.get('uploadFile')
-#     # print(data)
-#     print(fileList)
-#     print("store_file")
+    imd = request.files
+    fileList = imd.getlist('uploadFile')
+    # data = request.files.get('uploadFile')
+    # print(data)
+    print(fileList)
+    print("store_file")
     
-#     resultList = []
-#     for f in fileList:
-#         result = cloudinary.uploader.upload(f)
-#         if result:
-#             jsonResult = {
-#                 'id_img' : result['public_id'],
-#                 'file_url': result['url'],
-#                 'step_name': f.filename 
-#             }
-#             resultList.append(jsonResult)
-#     print(resultList)
-#     # if 'file' not in data:
-#     #     print("not a file")
-#     # else:
-#     #     print("data is a file")
-#     # file = request.files['FileStorage']
-#     # print(file.filename)
-#     # value = request(force=True)
-#     print('ok')
-#     return jsonify(resultList)
+    resultList = []
+    for f in fileList:
+        result = cloudinary.uploader.upload(f)
+        if result:
+            jsonResult = {
+                'id_img' : result['public_id'],
+                'file_url': result['url'],
+                'step_name': f.filename 
+            }
+            resultList.append(jsonResult)
+    print(resultList)
+    # if 'file' not in data:
+    #     print("not a file")
+    # else:
+    #     print("data is a file")
+    # file = request.files['FileStorage']
+    # print(file.filename)
+    # value = request(force=True)
+    print('ok')
+    return jsonify(resultList)
 
 ####################################
 # SAVE CURRENT STEP INTO COLLECTION
