@@ -10,9 +10,9 @@ import json
 from bson import json_util
 from bson.objectid import ObjectId
 from datetime import datetime
-import cloudinary 
-import cloudinary.uploader
-import cloudinary.api
+# import cloudinary 
+# import cloudinary.uploader
+# import cloudinary.api
 import jwt
 from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
@@ -44,11 +44,11 @@ mongo = PyMongo(app)
 mail.init_app(app)
 
 
-cloudinary.config( 
-  cloud_name = "htamml3fv", 
-  api_key = "479571498319886", 
-  api_secret = "wBUZ-eReQJpK_mninA2SMIP7WzI" 
-)
+# cloudinary.config( 
+#   cloud_name = "htamml3fv", 
+#   api_key = "479571498319886", 
+#   api_secret = "wBUZ-eReQJpK_mninA2SMIP7WzI" 
+# )
 
 # mongo = MongoClient(MONGO_URL)
 
@@ -201,39 +201,39 @@ def get_data():
 # UPLOAD A FILE TO CLOUDIFIER      #
 ###################################
 
-@app.route('/store_file', methods=['POST'])
-@cross_origin()
-def storeFile():
-    print(request)
-    print(request.files)
+# @app.route('/store_file', methods=['POST'])
+# @cross_origin()
+# def storeFile():
+#     print(request)
+#     print(request.files)
     
-    imd = request.files
-    fileList = imd.getlist('uploadFile')
-    # data = request.files.get('uploadFile')
-    # print(data)
-    print(fileList)
-    print("store_file")
+#     imd = request.files
+#     fileList = imd.getlist('uploadFile')
+#     # data = request.files.get('uploadFile')
+#     # print(data)
+#     print(fileList)
+#     print("store_file")
     
-    resultList = []
-    for f in fileList:
-        result = cloudinary.uploader.upload(f)
-        if result:
-            jsonResult = {
-                'id_img' : result['public_id'],
-                'file_url': result['url'],
-                'step_name': f.filename 
-            }
-            resultList.append(jsonResult)
-    print(resultList)
-    # if 'file' not in data:
-    #     print("not a file")
-    # else:
-    #     print("data is a file")
-    # file = request.files['FileStorage']
-    # print(file.filename)
-    # value = request(force=True)
-    print('ok')
-    return jsonify(resultList)
+#     resultList = []
+#     for f in fileList:
+#         result = cloudinary.uploader.upload(f)
+#         if result:
+#             jsonResult = {
+#                 'id_img' : result['public_id'],
+#                 'file_url': result['url'],
+#                 'step_name': f.filename 
+#             }
+#             resultList.append(jsonResult)
+#     print(resultList)
+#     # if 'file' not in data:
+#     #     print("not a file")
+#     # else:
+#     #     print("data is a file")
+#     # file = request.files['FileStorage']
+#     # print(file.filename)
+#     # value = request(force=True)
+#     print('ok')
+#     return jsonify(resultList)
 
 ####################################
 # SAVE CURRENT STEP INTO COLLECTION
