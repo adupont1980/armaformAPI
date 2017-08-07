@@ -44,11 +44,11 @@ mongo = PyMongo(app)
 mail.init_app(app)
 
 
-# cloudinary.config( 
-#   cloud_name = "htamml3fv", 
-#   api_key = "479571498319886", 
-#   api_secret = "wBUZ-eReQJpK_mninA2SMIP7WzI" 
-# )
+cloudinary.config( 
+  cloud_name = "htamml3fv", 
+  api_key = "479571498319886", 
+  api_secret = "wBUZ-eReQJpK_mninA2SMIP7WzI" 
+)
 
 # mongo = MongoClient(MONGO_URL)
 
