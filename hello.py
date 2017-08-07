@@ -10,7 +10,7 @@ import json
 from bson import json_util
 from bson.objectid import ObjectId
 from datetime import datetime
-import cloudinary
+import cloudinary as Cloud
 import cloudinary.uploader
 import cloudinary.api
 import jwt
@@ -47,7 +47,7 @@ mongo = PyMongo(app)
 mail.init_app(app)
 
 
-cloudinary.config( 
+Cloud.config( 
   cloud_name = "htamml3fv", 
   api_key = "479571498319886", 
   api_secret = "wBUZ-eReQJpK_mninA2SMIP7WzI" 
@@ -220,7 +220,7 @@ def storeFile():
     resultList = []
     for f in fileList:
         
-        result = cloudinary.uploader.upload(f)
+        result = Cloud.uploader.upload(f)
         if result:
             jsonResult = {
                 'id_img' : result['public_id'],
