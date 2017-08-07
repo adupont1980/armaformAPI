@@ -14,3 +14,4 @@ pytz==2014.4
 six==1.7.2
 Flask-Mail==0.7.4
 cloudinary
+python_2_unicode_compatible
