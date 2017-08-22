@@ -17,7 +17,7 @@ import jwt
 from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
-
+import operator
 
 mail = Mail()
 
@@ -248,8 +248,11 @@ def save_step():
         #     fileNameList.append({"name": obj['nom'], "details": [{"file_url": obj['file_url'] }]})
         #     print(obj['nom'])
         # print(obj)
+        obj.update({
+            "group": "WITHOUT GROUP", "DNI": "", "BECA": "",
+            "notes": "", "father": "", "dob": "", "contract":"", "intolerencia": "", "residence_duration": "3"})
         objToSave.update(obj)
-
+    
     currentDate = { "currentDate" : datetime.now()}
     
     objToSave.update(currentDate)
@@ -272,7 +275,7 @@ def save_step():
 def updateCheckBox():
     data = request.get_json(force=True)
     idRecord = data['_id']
-    newVal = data['value']
+    newVal = data['groupName']
     new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
     print(new_id)
     print(idRecord)
@@ -284,6 +287,25 @@ def updateCheckBox():
     #     objToSave.update(obj)
     #print()
     return "ok"
+
+
+
+
+##################################
+# SET GROUP TO USER 
+###################################
+@app.route('/set_group_to_user', methods=['POST'])
+@cross_origin()
+def setGroupToUser():
+    data = request.get_json(force=True)
+    idRecord = data['_id']
+    newVal = data['groupName']
+    new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{'group': newVal}}, upsert=False)
+    print(new_id)
+    print(idRecord)
+
+    return "ok"
+
 
 
 # ########################
@@ -328,11 +350,11 @@ def get_steps():
         "conditions": conditions
         })
         
- 
+
     return jsonify(output)
 
 ########################
-# GET RECORD DETAILS   #
+# GET DETAILS AUTO APP #
 ########################
 @app.route('/grid_details', methods=['GET'])
 @cross_origin()
@@ -346,6 +368,24 @@ def get_details():
     print('jjjjjjjjjjjj')
     # print(details)
     return json.dumps(details, default=json_util.default)
+
+########################
+# GET DETAILS BALLET   #
+########################
+@app.route('/ballet_details', methods=['GET'])
+@cross_origin()
+def get_ballet_details():
+    objId = request.args['id']
+    print(objId)
+    dataCollection = mongo.db.datas
+    details = dataCollection.find_one({"_id":ObjectId(objId)})
+    # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
+    # print(details['import'])
+    print('jjjjjjjjjjjj')
+    # print(details)
+    return json.dumps(details, default=json_util.default)
+
+
 
 ########################
 # GET TECH DETAILS   #
@@ -372,22 +412,53 @@ def get_tech_details():
 def get_datas():
     # try:
         gridName = request.args['grid_name']
+        filterSelected = request.args['filter']
         print(gridName)
+        print(filterSelected)
         print('start grid')
         dataCollection = mongo.db.datas
         gridCollection = mongo.db.grids
         
         grid = gridCollection.find_one({"name":gridName})
         
+        
+        
         if 'filtered' in grid:
             objFilter = {}
             for i, val in enumerate(grid['filtered']):
-                obj = { grid['filtered'][i]['by']:grid['filtered'][i]['value_by'] }
+                print(val)
+                if grid['filtered'][i]['value_by'] == 'filterSelected':
+                    valueBy = filterSelected
+                else:
+                    valueBy = grid['filtered'][i]['value_by']
+                obj = { grid['filtered'][i]['by']:valueBy }
                 objFilter.update(obj)
 
+            print(objFilter)
+
             datas = dataCollection.find(objFilter)
+
         else:
             datas = dataCollection.find({})
+        
+        if 'sorted' in grid:
+            
+            # sortBy = grid['sorted'][0]
+            sortBy = []
+            for toSort in grid['sorted']:
+                by = toSort['by']
+                order = 1
+                if order in toSort:
+                    order = toSort['order']
+                # print(toSort.values())
+                sortBy.append((by, order))
+            # datas.sort([(sortBy,-1), ("duration", 1)])
+            datas.sort(sortBy)
+            
+            print(objFilter )
+            print(sortBy)
+        
+        
         print(datas)
         # data = dataCollection.find({filterBy:valueBy})
 
@@ -401,16 +472,15 @@ def get_datas():
         #     print(col['cols'])
         output = []
         
-        
         if "details" in grid:
-            output.append({'config': grid['cols'],'config_details': grid['details']['fields']})
+            output.append({'config': grid['cols']})
         else:
             output.append({'config': grid['cols']})
         print('startDataCollections')
         # Pour chaque élement de la collection data
         for s in datas:
-            print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
-            print(s)
+            # print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
+            # print(s)
             # print(str(s["_id"]))
             record = {"step_id": str(s["step_id"])}
             record.update({"_id": str(s["_id"])})
@@ -420,10 +490,10 @@ def get_datas():
             for dicCol in grid['cols']:
                 # colsName.append(colName) 
                 if 'field_panel_name' in dicCol: 
-                    print('dans field panel')
-                    print(dicCol['field_panel_name'])
-                    print(dicCol['field_panel_values'])
-                # print("value")
+                #     print('dans field panel')
+                #     print(dicCol['field_panel_name'])
+                #     print(dicCol['field_panel_values'])
+                # # print("value")
                 # print(s[colName])
                    
                     
@@ -436,12 +506,12 @@ def get_datas():
                         
                     for i,val in enumerate(dicCol['field_panel_values']):
                         try:
-                            print(val)
-                            print("for field_panel_values: ")
-                            print(i)
-                            print(val['data'])
-                            print('***************************************')
-                            tmpFieldValue = ''
+                            # print(val)
+                            # print("for field_panel_values: ")
+                            # print(i)
+                            # print(val['data'])
+                            # print('***************************************')
+                            # tmpFieldValue = ''
                             #  value du champs field (ex value of profile.nom)
                             # print(s[keyName][i][val])
                             # print(val)
@@ -451,25 +521,22 @@ def get_datas():
                         #     # print('169' + val)
                         #     print(s[keyName][0][val])
                             cle = dicCol['field_panel_name'] + '_' + val['data']
-                            print(cle)
-                            print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@ avant Val")
-                            print(s[dicCol['field_panel_name']])
-                            print(val['data'])
+                            # print(cle)
+                            # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@ avant Val")
+                            # # print(s[dicCol['field_panel_name']])
+                            # print(val['data'])
                            
-                            # x = s[dicCol['field_panel_name']].index({'data': val['data']})
+                            # # x = s[dicCol['field_panel_name']].index({'data': val['data']})
                             # print('ddddddddddddddddddddddddddddd ' + x)
                             valeur = next((item for item in s[dicCol['field_panel_name']] if item.get(val['data'])), '')
                             if (valeur != ''):
                                 valeur = valeur[val['data']]
                             # valeur = next((item for item in s[dicCol['field_panel_name']] if item.get(val['data'])), None)[val['data']]
-                            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                            print(valeur)
-                            # valeur = s[dicCol['field_panel_name']][i][val['data']]
-                            # newVal = 
-                            print('--------------------------------------------')
-                            print(dicCol)
-                            print('+++++++++++++++++++++++++++++++++++++++++++++++')
-                            print(s[dicCol['field_panel_name']][i])
+                            # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                            # print('--------------------------------------------')
+                            # print(dicCol)
+                            # print('+++++++++++++++++++++++++++++++++++++++++++++++')
+                            # # print(s[dicCol['field_panel_name']][i])
                             # print(valeur)
                             record.update({cle:valeur})
                             # listValuesFieldPanel.append({val['data']: s[dicCol['field_panel_name']][i][val['data']]})
@@ -500,16 +567,13 @@ def get_datas():
                         
                 else:
                     #SI PAS FIELD PANEL ALORS COLONNE CLASIQUE TITLE + DATA
-                    print('field_panel_name not in dic')
-                    print(dicCol['data'])
-                    print(dicCol['title'])
-                    print(s[dicCol['data']])
+                    # print('field_panel_name not in dic')
+                    # print(dicCol['data'])
+                    # print(dicCol['title'])
+                    # print(s[dicCol['data']])
                     record.update({dicCol['data']: s[dicCol['data']]})
-                    # record.update({'title': dicCol['title']})
+                    record.update({'title': dicCol['title']})
             
-            print('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ')
-            print(grid)
-            print('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ')
             
             
             if 'details' in grid:
@@ -519,19 +583,19 @@ def get_datas():
                 if 'activated' in grid['details']:
                     # detailContent.append(dicDetails)
                    
-                    for dicDetails in grid['details']['fields']:
-                        print(dicDetails)
-                        print('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ')
-                        if dicDetails['type'] == 'file_details':
-                            print(dicDetails['file_name'])
-                            print(s['version'])
-                            detailContent.append({"file_name": dicDetails['file_name'], "label": dicDetails['label'], "file_url": "blabla" })
-                        else:
-                            print(dicDetails['data'])
-                            print(s[dicDetails['data']])
-                            detailContent.append({dicDetails['data']:s[dicDetails['data']], "label": dicDetails['label'], "type":dicDetails['type'] })
-                        # print(dicDetails)
-                    record.update({"detail":detailContent, "details": {"activated": True}})
+                    # for dicDetails in grid['details']['fields']:
+                    #     print(dicDetails)
+                    #     print('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ')
+                    #     if dicDetails['type'] == 'file_details':
+                    #         print(dicDetails['file_name'])
+                    #         print(s['version'])
+                    #         detailContent.append({"file_name": dicDetails['file_name'], "label": dicDetails['label'], "file_url": "blabla" })
+                    #     else:
+                    #         print(dicDetails['data'])
+                    #         print(s[dicDetails['data']])
+                    #         detailContent.append({dicDetails['data']:s[dicDetails['data']], "label": dicDetails['label'], "type":dicDetails['type'] })
+                    # record.update({"detail":detailContent, "details": {"activated": True}})
+                    record.update({"details": {"activated": True}})
                 else:
                     record.update({"details": {"activated": False}})
             else:
@@ -540,8 +604,8 @@ def get_datas():
             
             # print(listValuesFieldPanel)
             output.append(record)
-            print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-            print(record)
+            # print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+            # print(record)
             # print(grid)
             # print(grid['filtered'][0]['by'])
         
@@ -551,7 +615,8 @@ def get_datas():
 
     # docs_list  = list(data)
     # print(docs_list)
-        print(output)
+        # print(output)
+    
         return jsonify(output)
 
     # except (ValueError):
@@ -586,11 +651,10 @@ def getGrids():
     try:
         for grid in gridList:
             print(grid['name'])
-            output.append({
-            "name": grid['name']
-            })
-
-    
+            if "type" in grid:
+                output.append({  "name": grid['name'], "listBtn": grid['list'], "display": True })
+            else: 
+                output.append({"name": grid['name'], "display": True})
 
     except StopAsyncIteration:
         print("Empty cursor")
@@ -662,7 +726,93 @@ def signup():
         
     except expression as identifier:
         pass
+
+#############################
+# GET GROUPS BY COURSE_TYPE #
+#############################
+@app.route('/get_groups', methods=['GET'])
+@cross_origin()
+def getGroups():
+    courseType = request.args['course']
+    stage = request.args['stage']
+    print(courseType)
+    print(stage)
+    groups = collection = mongo.db.balletCourse.find({"name": courseType}).distinct("groups")
     
+    pipeLine = [
+        { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage }, 
+                                  {"duration" : { "$in": ["1","3"]} }]}}, 
+        { "$group": {  "_id": {"group": "$group", "week": "1"}, "count": {"$sum":1} }  }  
+    ]
+    week1 = mongo.db.datas.aggregate(pipeLine)
+
+    pipeLine = [
+        { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage}, 
+                                  {"duration" : { "$in": ["2","3"]} }]}}, 
+        { "$group": {  "_id": {"group": "$group", "week": "2"}, "count": {"$sum":1} }  }  
+    ]
+    week2 = mongo.db.datas.aggregate(pipeLine)
+    print(week1)
+    print(week2)
+    jsonGroups = {}
+    jsonGroupsArray= []
+    wk1List  = list(week1)
+    wk2List  = list(week2)
+    print(len(wk1List))
+    print(len(wk2List))
+    
+    if len(wk1List) == 0:
+        try:
+            for group in groups:
+                jsonGroups = { "group" : group, "lst": [{"week": "1", "people": 0 }] }
+                jsonGroupsArray.append(jsonGroups)
+        except StopAsyncIteration:
+            print("Empty cursor")
+    else:
+        try:
+            for wk1 in wk2List:
+                jsonGroups = { "group" : wk1['_id']['group'], "lst": [{"week": wk1['_id']["week"], "people": wk1['count'] }] }
+                jsonGroupsArray.append(jsonGroups)
+        except StopAsyncIteration:
+            print("Empty cursor")
+
+
+    if len(wk2List) == 0:
+        try:
+            for group in groups:
+                jsonGroups = { "group" : group, "lst": [{"week": "2", "people": 0 }] }
+                jsonGroupsArray.append(jsonGroups)
+                jsonGroups = { "group" : group, "lst": [{"week": "3", "people": 0 }] }
+                jsonGroupsArray.append(jsonGroups)
+        except StopAsyncIteration:
+            print("Empty cursor")
+    else:
+        for grp in jsonGroupsArray:
+            groupFind = False
+            for wk2 in wk2List:        
+                print(grp['group'])
+                if wk2['_id']['group'] == grp['group']:
+                    grp['lst'].append({"week": wk2['_id']["week"], "people": wk2['count']})
+                    grp['lst'].append({"week": "3", "people": wk2['count']})
+                    groupFind = True
+                    break
+            
+            if groupFind == False:
+                    grp['lst'].append({"week": wk2['_id']["week"], "people": 0})
+                    grp['lst'].append({"week": "3", "people": 0})   
+
+       
+    
+    print(groups)
+    
+
+    jsonGroupsArray.sort(key=operator.itemgetter("group"))
+    print(jsonGroupsArray)
+    jsonGroupsArray.append({"groups": groups})
+    return json.dumps(jsonGroupsArray, default=json_util.default)
+
+
+
 @app.route('/auth_signin', methods=['POST'])
 @cross_origin()
 def signin():
