@@ -770,7 +770,7 @@ def getGroups():
             print("Empty cursor")
     else:
         try:
-            for wk1 in wk2List:
+            for wk1 in wk1List:
                 jsonGroups = { "group" : wk1['_id']['group'], "lst": [{"week": wk1['_id']["week"], "people": wk1['count'] }] }
                 jsonGroupsArray.append(jsonGroups)
         except StopAsyncIteration:
@@ -801,9 +801,7 @@ def getGroups():
                     grp['lst'].append({"week": wk2['_id']["week"], "people": 0})
                     grp['lst'].append({"week": "3", "people": 0})   
 
-       
     
-    print(groups)
     
 
     jsonGroupsArray.sort(key=operator.itemgetter("group"))
