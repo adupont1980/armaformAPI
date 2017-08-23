@@ -761,48 +761,68 @@ def getGroups():
     print(len(wk1List))
     print(len(wk2List))
     
-    if len(wk1List) == 0:
-        try:
-            for group in groups:
-                jsonGroups = { "group" : group, "lst": [{"week": "1", "people": 0 }] }
-                jsonGroupsArray.append(jsonGroups)
-        except StopAsyncIteration:
-            print("Empty cursor")
-    else:
-        try:
-            for wk1 in wk1List:
-                jsonGroups = { "group" : wk1['_id']['group'], "lst": [{"week": wk1['_id']["week"], "people": wk1['count'] }] }
-                jsonGroupsArray.append(jsonGroups)
-        except StopAsyncIteration:
-            print("Empty cursor")
+    # if len(wk1List) == 0:
+    try:
+        for group in groups:
+            # jsonGroups = { "group" : group, "lst": [{"week": "1", "people": 0 }, {"week": "2", "people": 0 },{"week": "3", "people": 0 }] }
+            jsonGroups = { "group" : group, "lst": []}
+            jsonGroupsArray.append(jsonGroups)
+    except StopAsyncIteration:
+        print("Empty cursor")
+    # else:
+    # try:
+    #     # for wk1 in wk1List:
+    #     #     jsonGroups = { "group" : wk1['_id']['group'], "lst": [{"week": wk1['_id']["week"], "people": wk1['count'] }] }
+    #     #     jsonGroupsArray.append(jsonGroups)
+    # except StopAsyncIteration:
+    #     print("Empty cursor")
 
 
-    if len(wk2List) == 0:
-        try:
-            for group in groups:
-                jsonGroups = { "group" : group, "lst": [{"week": "2", "people": 0 }] }
-                jsonGroupsArray.append(jsonGroups)
-                jsonGroups = { "group" : group, "lst": [{"week": "3", "people": 0 }] }
-                jsonGroupsArray.append(jsonGroups)
-        except StopAsyncIteration:
-            print("Empty cursor")
-    else:
-        for grp in jsonGroupsArray:
-            groupFind = False
-            for wk2 in wk2List:        
-                print(grp['group'])
-                if wk2['_id']['group'] == grp['group']:
-                    grp['lst'].append({"week": wk2['_id']["week"], "people": wk2['count']})
-                    grp['lst'].append({"week": "3", "people": wk2['count']})
-                    groupFind = True
-                    break
-            
-            if groupFind == False:
-                    grp['lst'].append({"week": wk2['_id']["week"], "people": 0})
-                    grp['lst'].append({"week": "3", "people": 0})   
+    # if len(wk2List) == 0:
+    # try:
+    #     for group in groups:
+    #         jsonGroups = { "group" : group, "lst": [{"week": "2", "people": 0 }] }
+    #         jsonGroupsArray.append(jsonGroups)
+    #         # jsonGroups = { "group" : group, "lst": [{"week": "3", "people": 0 }] }
+    #         # jsonGroupsArray.append(jsonGroups)
+    # except StopAsyncIteration:
+    #     print("Empty cursor")
+    # else:
+    for grp in jsonGroupsArray:
+        print(grp)
+        
+        group1Find = False
+        group2Find = False
+        for wk1 in wk1List:
+            print("wk1")
+            if wk1['_id']['group'] == grp['group']:
+                grp['lst'].append({"week": wk1['_id']["week"], "people": wk1['count']})
+                group1Find = True
+                print("week: " + wk1['_id']["week"])
+                print(group + ":" + str(wk1['count']))
+                break
+            # jsonGroupsArray.append(jsonGroups)
+        for wk2 in wk2List:        
+            print("wk2")
+            print(grp['group'])
+            if wk2['_id']['group'] == grp['group']:
+                grp['lst'].append({"week": wk2['_id']["week"], "people": wk2['count']})
+                grp['lst'].append({"week": "3", "people": wk2['count']})
+                group2Find = True
+                print("week: " + wk2['_id']["week"])
+                print(group + ":" + str(wk2['count']))
+                print(grp['lst'])
+                break
+        
+        if group1Find == False:
+                grp['lst'].append({"week": "1", "people": 0})
 
-    
-    
+        if group2Find == False:
+                grp['lst'].append({"week": "2", "people": 0})
+                grp['lst'].append({"week": "3", "people": 0})   
+        
+        grp['lst'].sort(key=operator.itemgetter("week"))
+
 
     jsonGroupsArray.sort(key=operator.itemgetter("group"))
     print(jsonGroupsArray)
