@@ -856,6 +856,29 @@ def signin():
     return json.dumps(output, default=json_util.default)
     # return output
 
+
+
+@app.route('/update_student', methods=['POST'])
+@cross_origin()
+def updateStudent():
+    formValues = request.get_json()
+    
+    # print(formValues)
+    # print(formValues['_id'])
+    studentId = formValues['_id']
+    # print(studentId['$oid'])
+    new_id = mongo.db.datas.update(
+        {'_id': ObjectId(studentId['$oid']) }, 
+        { '$set':
+            { 
+                'DNI': formValues['DNI'],
+                'father': formValues['father'],
+                'BECA': formValues['BECA'],
+                'intolerencia': formValues['intolerencia']
+            }
+        }, upsert=False)
+    return str(new_id)
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
