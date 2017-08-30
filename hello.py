@@ -876,7 +876,7 @@ def updateStudent():
                 'DNI': formValues['DNI'],
                 'father': formValues['father'],
                 'BECA': formValues['BECA'],
-                'intolerencia': formValues['intolerencia'],
+                'intolerancia': formValues['intolerancia'],
                 'email2': formValues['email2'],
                 'phone2': formValues['phone2']
             }
