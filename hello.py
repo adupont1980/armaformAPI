@@ -857,7 +857,9 @@ def signin():
     # return output
 
 
-
+#############################################
+# UPDATE DATA FROM student.service          #
+#############################################
 @app.route('/update_student', methods=['POST'])
 @cross_origin()
 def updateStudent():
@@ -874,7 +876,9 @@ def updateStudent():
                 'DNI': formValues['DNI'],
                 'father': formValues['father'],
                 'BECA': formValues['BECA'],
-                'intolerencia': formValues['intolerencia']
+                'intolerencia': formValues['intolerencia'],
+                'email2': formValues['email2'],
+                'phone2': formValues['phone2']
             }
         }, upsert=False)
     return str(new_id)
