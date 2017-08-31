@@ -685,8 +685,8 @@ def send_email():
         
         profile  = formData['profile']
         nom      = profile[0]['nom']
-        email    = profile[2]['email']
-        country  = profile[3]['country']
+        email    = profile[3]['email']
+        country  = profile[4]['country']
 
         print(mailInfo)
         sender   = mailInfo['sender']
