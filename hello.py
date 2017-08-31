@@ -878,7 +878,8 @@ def updateStudent():
                 'BECA': formValues['BECA'],
                 'intolerancia': formValues['intolerancia'],
                 'email2': formValues['email2'],
-                'phone2': formValues['phone2']
+                'phone2': formValues['phone2'],
+                'notes': formValues['notes']
             }
         }, upsert=False)
     return str(new_id)
