@@ -236,29 +236,42 @@ def storeFile():
     return jsonify(resultList)
 
 ####################################
-# SAVE CURRENT STEP INTO COLLECTION
+# SAVE STEP INTO COLLECTION
 #####################################
 @app.route('/save_datas', methods=['POST'])
 def save_step():
+    print(request)
     data = request.get_json(force=True)
     fileNameList = []
     objToSave = {}
     for obj in data:
+        print(obj)
         # if 'file_uploaded' in obj:
         #     fileNameList.append({"name": obj['nom'], "details": [{"file_url": obj['file_url'] }]})
         #     print(obj['nom'])
         # print(obj)
-        obj.update({
-            "group": "WITHOUT GROUP", "DNI": "", "BECA": "",
-            "notes": "", "father": "", "dob": "", "contract":"", "intolerencia": "", "residence_duration": "3"})
+        if 'master' in obj:
+            collectionName = obj['master']
+            if obj['master'] == 'ballet':
+                obj.update({
+                "group": "WITHOUT GROUP", "DNI": "", "BECA": "",
+                "notes": "", "father": "", "dob": "", 
+                "contract":"", "intolerencia": "", "residence_duration": ""})
         objToSave.update(obj)
     
-    currentDate = { "currentDate" : datetime.now()}
-    
+    currentDate = { "currentDate" : str(datetime.now())}
+    # print(obj['master'])
     objToSave.update(currentDate)
     print(objToSave)    
-    
-    new_id = mongo.db.datas.insert(objToSave)
+
+    collection = 'mongo.db.'+collectionName+'.insert_one('+ str(objToSave) +')'
+    print(collection)
+            
+    new_id = eval(collection)
+
+    # docs_list  = list(cursor)
+
+    # new_id = mongo.db.insert(objToSave)
     # print(new_id)
     return str(new_id)
 
@@ -419,7 +432,7 @@ def get_datas():
         dataCollection = mongo.db.datas
         gridCollection = mongo.db.grids
         
-        grid = gridCollection.find_one({"name":gridName})
+        grid = gridCollection.find_one({"name":gridName })
         
         
         
@@ -455,7 +468,7 @@ def get_datas():
             # datas.sort([(sortBy,-1), ("duration", 1)])
             datas.sort(sortBy)
             
-            print(objFilter )
+       
             print(sortBy)
         
         
@@ -638,15 +651,18 @@ def get_datas():
 ###################
 # GET LIST OF GRIDS
 ###################"
-@app.route('/get_grids', methods=['GET'])
+@app.route('/get_grids', methods=['POST'])
+@cross_origin()
 def getGrids():
     
     # MAYBE WE CAN REMOVE THIS ARG IF WE USE 1 APP FOR ONLY ONE PROJECT
     # master = request.args['master']
-
+    data = request.get_json(force=True)
+    # master = request.args['master']
     gridCollection = mongo.db.grids
-
-    gridList = gridCollection.find({"activated": True })
+    print(data)
+    print("master")
+    gridList = gridCollection.find({"activated": True, "master": data['master'] })
     output = []
     try:
         for grid in gridList:
