@@ -342,8 +342,11 @@ def get_steps():
 
     Steps = mongo.db.steps.find({"master": appName}).sort("step_id",1)
     # .sort("step_id",1)  {$elemMatch:{$eq:"auto"}}}, {"_id":0})
-
+    logoUrl = ""
+    if "logo_url" in master:
+        logoUrl = master['logo_url'] 
     
+
     for step in Steps:
         print(step['step_id'])
         
@@ -357,6 +360,7 @@ def get_steps():
         "step_id": step['step_id'],
         "master_name": master['name'],
         "master_type": master['type'],
+        "logo_url": logoUrl,
         "name": step['name'],
         "type": step['type'],
         "configuration": step['configuration'],
@@ -429,12 +433,21 @@ def get_datas():
         print(gridName)
         print(filterSelected)
         print('start grid')
-        dataCollection = mongo.db.datas
+        
+        
+        
         gridCollection = mongo.db.grids
         
         grid = gridCollection.find_one({"name":gridName })
         
-        
+        if "master" in grid:
+            collectionName = grid['master']
+            tmpDataCol = "mongo.db." + collectionName
+            dataCollection = eval(tmpDataCol)
+        else:
+            dataCollection = mongo.db.datas
+
+        print(dataCollection)
         
         if 'filtered' in grid:
             objFilter = {}
