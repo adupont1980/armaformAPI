@@ -288,8 +288,15 @@ def save_step():
 def updateCheckBox():
     data = request.get_json(force=True)
     idRecord = data['_id']
-    newVal = data['groupName']
-    new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
+    newVal = data['value']
+    if "master" in data:
+        collectionName = data['master']
+        print(collectionName)
+        new_id = mongo.db.play.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
+        # updateQuery = 'mongo.db.'+collectionName+'.update({"_id":  '+ ObjectId(idRecord) +'},{ "$set":{"registred": '+newVal+'}}, upsert=False')
+        # new_id = eval(updateQuery)
+    else:
+        new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
     print(new_id)
     print(idRecord)
     
@@ -371,7 +378,7 @@ def get_steps():
     return jsonify(output)
 
 ########################
-# GET DETAILS AUTO APP #
+# GET DETAILS AUTO APP (CAR APP)#
 ########################
 @app.route('/grid_details', methods=['GET'])
 @cross_origin()
@@ -387,7 +394,7 @@ def get_details():
     return json.dumps(details, default=json_util.default)
 
 ########################
-# GET DETAILS BALLET   #
+# GET DETAILS BALLET (BALLET APP)  #
 ########################
 @app.route('/ballet_details', methods=['GET'])
 @cross_origin()
@@ -405,7 +412,7 @@ def get_ballet_details():
 
 
 ########################
-# GET TECH DETAILS   #
+# GET TECH DETAILS (CAR APP)  #
 ########################
 @app.route('/tech_details', methods=['GET'])
 @cross_origin()
@@ -449,6 +456,7 @@ def get_datas():
 
         print(dataCollection)
         
+        # FILTERED
         if 'filtered' in grid:
             objFilter = {}
             for i, val in enumerate(grid['filtered']):
@@ -463,7 +471,6 @@ def get_datas():
             print(objFilter)
 
             datas = dataCollection.find(objFilter)
-
         else:
             datas = dataCollection.find({})
         
