@@ -250,9 +250,9 @@ def save_step():
         #     fileNameList.append({"name": obj['nom'], "details": [{"file_url": obj['file_url'] }]})
         #     print(obj['nom'])
         # print(obj)
-        if 'master' in obj:
-            collectionName = obj['master']
-            if obj['master'] == 'ballet':
+        if 'app_name' in obj:
+            collectionName = obj['app_name']
+            if obj['app_name'] == 'ballet':
                 obj.update({
                 "group": "WITHOUT GROUP", "DNI": "", "BECA": "",
                 "notes": "", "father": "", "dob": "", 
@@ -291,8 +291,11 @@ def updateCheckBox():
     newVal = data['value']
     if "master" in data:
         collectionName = data['master']
-        print(collectionName)
-        new_id = mongo.db.play.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
+        if collectionName == "play":
+            print(collectionName)
+            new_id = mongo.db.play.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
+        elif collectionName == "ballet":
+            new_id = mongo.db.ballet.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)    
         # updateQuery = 'mongo.db.'+collectionName+'.update({"_id":  '+ ObjectId(idRecord) +'},{ "$set":{"registred": '+newVal+'}}, upsert=False')
         # new_id = eval(updateQuery)
     else:
@@ -320,7 +323,7 @@ def setGroupToUser():
     data = request.get_json(force=True)
     idRecord = data['_id']
     newVal = data['groupName']
-    new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{'group': newVal}}, upsert=False)
+    new_id = mongo.db.ballet.update({'_id':  ObjectId(idRecord)}, { '$set':{'group': newVal}}, upsert=False)
     print(new_id)
     print(idRecord)
 
@@ -401,7 +404,7 @@ def get_details():
 def get_ballet_details():
     objId = request.args['id']
     print(objId)
-    dataCollection = mongo.db.datas
+    dataCollection = mongo.db.ballet
     details = dataCollection.find_one({"_id":ObjectId(objId)})
     # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
     # print(details['import'])
@@ -787,7 +790,7 @@ def getGroups():
                                   {"duration" : { "$in": ["2","3"]} }]}}, 
         { "$group": {  "_id": {"group": "$group", "week": "2"}, "count": {"$sum":1} }  }  
     ]
-    week2 = mongo.db.datas.aggregate(pipeLine)
+    week2 = mongo.db.ballet.aggregate(pipeLine)
     print(week1)
     print(week2)
     jsonGroups = {}
