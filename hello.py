@@ -256,7 +256,7 @@ def save_step():
                 obj.update({
                 "group": "WITHOUT GROUP", "DNI": "", "BECA": "",
                 "notes": "", "father": "", "dob": "", 
-                "contract":"", "intolerencia": "", "residence_duration": ""})
+                "contract":"", "intolerencia": "", "residence_duration": "", "phone2":"", "email2": ""})
         objToSave.update(obj)
     
     currentDate = { "currentDate" : str(datetime.now())}
@@ -443,9 +443,7 @@ def get_datas():
         print(gridName)
         print(filterSelected)
         print('start grid')
-        
-        
-        
+
         gridCollection = mongo.db.grids
         
         grid = gridCollection.find_one({"name":gridName })
@@ -710,7 +708,7 @@ def send_email():
     formId = request.args['form_id']
     
     mailCollection = mongo.db.mails
-    dataCollection = mongo.db.datas
+    dataCollection = mongo.db.ballet
 
     mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
     formData = dataCollection.find_one({"_id":ObjectId(formId)})
@@ -731,7 +729,7 @@ def send_email():
         sender   = mailInfo['sender']
 
         # PREPARE CONFIRMATION MSG
-        html = "Thank your for your request <br> Nom:" + nom + "<br> Course selected: " + course + "<br> Duration of the course: " + duration
+        html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
         
         msg = Message("Russian ballet, Automatic email",
                   sender=sender,
@@ -778,15 +776,15 @@ def getGroups():
     print(stage)
     groups = collection = mongo.db.balletCourse.find({"name": courseType}).distinct("groups")
     
-    pipeLine = [
+    pipeLine1 = [
         { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage }, 
                                   {"duration" : { "$in": ["1","3"]} }]}}, 
         { "$group": {  "_id": {"group": "$group", "week": "1"}, "count": {"$sum":1} }  }  
     ]
-    week1 = mongo.db.datas.aggregate(pipeLine)
-
+    week1 = mongo.db.ballet.aggregate(pipeLine1)
+    print(pipeLine1)
     pipeLine = [
-        { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage}, 
+        { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage }, 
                                   {"duration" : { "$in": ["2","3"]} }]}}, 
         { "$group": {  "_id": {"group": "$group", "week": "2"}, "count": {"$sum":1} }  }  
     ]
@@ -796,7 +794,9 @@ def getGroups():
     jsonGroups = {}
     jsonGroupsArray= []
     wk1List  = list(week1)
+    print(wk1List)
     wk2List  = list(week2)
+    print(wk2List)
     print(len(wk1List))
     print(len(wk2List))
     
@@ -908,14 +908,15 @@ def updateStudent():
     # print(formValues['_id'])
     studentId = formValues['_id']
     # print(studentId['$oid'])
-    new_id = mongo.db.datas.update(
+    print(formValues)
+    new_id = mongo.db.ballet.update(
         {'_id': ObjectId(studentId['$oid']) }, 
         { '$set':
             { 
                 'DNI': formValues['DNI'],
                 'father': formValues['father'],
                 'BECA': formValues['BECA'],
-                'intolerancia': formValues['intolerancia'],
+                'intolerencia': formValues['intolerencia'],
                 'email2': formValues['email2'],
                 'phone2': formValues['phone2'],
                 'notes': formValues['notes']
