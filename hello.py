@@ -252,11 +252,15 @@ def save_step():
         # print(obj)
         if 'app_name' in obj:
             collectionName = obj['app_name']
+            # SET NEEDED DATA
             if obj['app_name'] == 'ballet':
                 obj.update({
                 "group": "WITHOUT GROUP", "DNI": "", "BECA": "",
                 "notes": "", "father": "", "dob": "", 
-                "contract":"", "intolerencia": "", "residence_duration": "", "phone2":"", "email2": ""})
+                "contract":"", "intolerencia": "", "residence_duration": "", 
+                "phone2":"", "email2": "", "registred":False})
+            if obj['app_name'] == 'play':
+                 obj.update({ "paid": True, "registred":False})
         objToSave.update(obj)
     
     currentDate = { "currentDate" : str(datetime.now())}
@@ -289,17 +293,19 @@ def updateCheckBox():
     data = request.get_json(force=True)
     idRecord = data['_id']
     newVal = data['value']
-    if "master" in data:
-        collectionName = data['master']
+    fieldName = data['field_name']
+    if "appName" in data:
+        collectionName = data['appName']
+        print(collectionName)
         if collectionName == "play":
             print(collectionName)
-            new_id = mongo.db.play.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
+            new_id = mongo.db.play.update({'_id':  ObjectId(idRecord)}, { '$set':{fieldName: newVal}}, upsert=False)
         elif collectionName == "ballet":
-            new_id = mongo.db.ballet.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)    
+            new_id = mongo.db.ballet.update({'_id':  ObjectId(idRecord)}, { '$set':{fieldName: newVal}}, upsert=False)    
         # updateQuery = 'mongo.db.'+collectionName+'.update({"_id":  '+ ObjectId(idRecord) +'},{ "$set":{"registred": '+newVal+'}}, upsert=False')
         # new_id = eval(updateQuery)
     else:
-        new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{'registred': newVal}}, upsert=False)
+        new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{fieldName: newVal}}, upsert=False)
     print(new_id)
     print(idRecord)
     
