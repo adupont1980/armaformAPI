@@ -26,12 +26,12 @@ app = Flask(__name__)
 CORS(app)
 MONGO_URL = os.environ.get('MONGO_URL')
 
-app.config['MAIL_SERVER']='smtp.live.com'
-app.config['MAIL_PORT'] = 25
-app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
-app.config['MAIL_PASSWORD'] = 'Goodbye2012'
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
+# app.config['MAIL_SERVER']='smtp.live.com'
+# app.config['MAIL_PORT'] = 25
+# app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
+# app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+# app.config['MAIL_USE_TLS'] = True
+# app.config['MAIL_USE_SSL'] = False
 
 # app.register_blueprint(auth)
 
@@ -260,7 +260,7 @@ def save_step():
                 "contract":"", "intolerencia": "", "residence_duration": "", 
                 "phone2":"", "email2": "", "registred":False})
             if obj['app_name'] == 'play':
-                 obj.update({ "paid": True, "registred":False})
+                 obj.update({ "paid": False, "registred":False})
         objToSave.update(obj)
     
     currentDate = { "currentDate" : str(datetime.now())}
@@ -272,17 +272,17 @@ def save_step():
     print(collection)
             
     new_id = eval(collection)
-
+    print(new_id.inserted_id)
     # docs_list  = list(cursor)
 
     # new_id = mongo.db.insert(objToSave)
     # print(new_id)
-    return str(new_id)
+    return str(new_id.inserted_id)
 
     # Response(
     # json_util.dumps({'id': id},mimetype='application/json')
     # ) 
-    # return json_dumps(id, default=newEncoder)
+    # return json_dumps(new_id, default=newEncoder)
 
 ##################################
 # UPDATE CHECKBOX 
@@ -315,7 +315,7 @@ def updateCheckBox():
     #     print(obj)
     #     objToSave.update(obj)
     #print()
-    return "ok"
+    return new_id
 
 
 
@@ -710,34 +710,50 @@ def getGrids():
 ###############
 @app.route('/send_mail', methods=['GET'])
 def send_email():
+    
+    app.config['MAIL_SERVER']='smtp.live.com'
+    app.config['MAIL_PORT'] = 25
+    app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
+    app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
+    mail.init_app(app)
+
     mailId = request.args['mail_id']
     formId = request.args['form_id']
     
     mailCollection = mongo.db.mails
-    dataCollection = mongo.db.ballet
+    dataCollection = mongo.db.play
 
     mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
     formData = dataCollection.find_one({"_id":ObjectId(formId)})
 
     try:
-        # GET INFO TO PUT IN TEMPLATE
-        age      = formData['age']
-        xp       = formData['years_of_experience']
-        duration = formData['duration']
-        course   = formData['course_type']
+        # # GET INFO TO PUT IN TEMPLATE
+        # age      = formData['age']
+        # xp       = formData['years_of_experience']
+        # duration = formData['duration']
+        # course   = formData['course_type']
         
+        # profile  = formData['profile']
+        # nom      = profile[0]['nom']
+        # email    = profile[3]['email']
+        # country  = profile[4]['country']
+
         profile  = formData['profile']
         nom      = profile[0]['nom']
+        prenom    = profile[1]['firstname']
         email    = profile[3]['email']
-        country  = profile[4]['country']
 
         print(mailInfo)
         sender   = mailInfo['sender']
 
         # PREPARE CONFIRMATION MSG
-        html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
+        html = "<table><tr><td>TITULAIRE DU COMPTE: </td><td> Bureau des élèves-ISEB</td></tr><tr><td>IBAN: </td><td>  FR76 1558 9297 1803 0818 3454 079</td></tr><tr><td>COMMUNICATION:" +nom +" "+ prenom + " </td><td>  bde play </td></tr></table>"          
         
-        msg = Message("Russian ballet, Automatic email",
+        # html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
+        
+        msg = Message( mailInfo['subject'],
                   sender=sender,
                   html=html,
                   recipients=[email])
