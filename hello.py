@@ -714,7 +714,7 @@ def send_email():
     app.config['MAIL_SERVER']='smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USERNAME'] = 'bde.isen.brest@gmail.com'
-    app.config['MAIL_PASSWORD'] = '24PLAY18'
+    app.config['MAIL_PASSWORD'] = '24BDE2018'
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USE_SSL'] = False
     mail.init_app(app)
