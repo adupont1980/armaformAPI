@@ -711,10 +711,10 @@ def getGrids():
 @app.route('/send_mail', methods=['GET'])
 def send_email():
     
-    app.config['MAIL_SERVER']='smtp.live.com'
+    app.config['MAIL_SERVER']='smtp.gmail.com'
     app.config['MAIL_PORT'] = 25
-    app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
-    app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+    app.config['MAIL_USERNAME'] = 'bde.isen.brest@gmail.com'
+    app.config['MAIL_PASSWORD'] = '24PLAY18'
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USE_SSL'] = False
     mail.init_app(app)
@@ -749,7 +749,7 @@ def send_email():
         sender   = mailInfo['sender']
 
         # PREPARE CONFIRMATION MSG
-        html = "<table><tr><td>TITULAIRE DU COMPTE: </td><td> Bureau des élèves-ISEB</td></tr><tr><td>IBAN: </td><td>  FR76 1558 9297 1803 0818 3454 079</td></tr><tr><td>COMMUNICATION:" +nom +" "+ prenom + " </td><td>  bde play </td></tr></table>"          
+        html = "<table><tr><td>TITULAIRE DU COMPTE: </td><td> Bureau des élèves-ISEB</td></tr><tr><td>IBAN: </td><td>  FR76 1558 9297 1803 0818 3454 079</td></tr><tr><td>COMMUNICATION: </td><td> Bde play "+nom +" "+ prenom + " </td></tr></table>"          
         
         # html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
         
