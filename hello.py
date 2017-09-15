@@ -708,57 +708,73 @@ def getGrids():
 ############### 
 #  SEND EMAIL #
 ###############
-@app.route('/send_mail', methods=['GET'])
+@app.route('/send_mail', methods=['POST'])
 def send_email():
     
-    app.config['MAIL_SERVER']='smtp.gmail.com'
-    app.config['MAIL_PORT'] = 587
-    app.config['MAIL_USERNAME'] = 'bde.isen.brest@gmail.com'
-    app.config['MAIL_PASSWORD'] = '24BDE2018'
-    app.config['MAIL_USE_TLS'] = True
-    app.config['MAIL_USE_SSL'] = False
+
+    
     mail.init_app(app)
 
-    mailId = request.args['mail_id']
-    formId = request.args['form_id']
-    
+    data = request.get_json(force=True)
+
+    mailId = data['mail_id']
+    formId = data['form_id']
+    appName = data['app_name']
+
     mailCollection = mongo.db.mails
-    dataCollection = mongo.db.play
-
-    mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
-    formData = dataCollection.find_one({"_id":ObjectId(formId)})
-
-    try:
-        # # GET INFO TO PUT IN TEMPLATE
-        # age      = formData['age']
-        # xp       = formData['years_of_experience']
-        # duration = formData['duration']
-        # course   = formData['course_type']
+    if appName == 'play':
+        app.config['MAIL_SERVER']='smtp.live.com'
+        app.config['MAIL_PORT'] = 25
+        app.config['MAIL_USERNAME'] = 'bde.play.2018@hotmail.com'
+        app.config['MAIL_PASSWORD'] = 'bdeplay2018'
+        app.config['MAIL_USE_TLS'] = True
+        app.config['MAIL_USE_SSL'] = False
         
-        # profile  = formData['profile']
-        # nom      = profile[0]['nom']
-        # email    = profile[3]['email']
-        # country  = profile[4]['country']
-
+        dataCollection = mongo.db.play
+        formData = dataCollection.find_one({"_id":ObjectId(formId)})
+        
         profile  = formData['profile']
         nom      = profile[0]['nom']
         prenom    = profile[1]['firstname']
         email    = profile[3]['email']
 
-        print(mailInfo)
-        sender   = mailInfo['sender']
-
         # PREPARE CONFIRMATION MSG
         html = "<table><tr><td>TITULAIRE DU COMPTE: </td><td> Bureau des élèves-ISEB</td></tr><tr><td>IBAN: </td><td>  FR76 1558 9297 1803 0818 3454 079</td></tr><tr><td>COMMUNICATION: </td><td> Bde play "+nom +" "+ prenom + " </td></tr></table>"          
+       
+
+    else:
+        app.config['MAIL_SERVER']='smtp.live.com'
+        app.config['MAIL_PORT'] = 25
+        app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
+        app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+        app.config['MAIL_USE_TLS'] = True
+        app.config['MAIL_USE_SSL'] = False
         
-        # html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
+        dataCollection = mongo.db.ballet
+        formData = dataCollection.find_one({"_id":ObjectId(formId)})
+        # GET INFO TO PUT IN TEMPLATE
+        age      = formData['age']
+        xp       = formData['years_of_experience']
+        duration = formData['duration']
+        course   = formData['course_type']
         
+        profile  = formData['profile']
+        nom      = profile[0]['nom']
+        email    = profile[3]['email']
+        country  = profile[4]['country']
+
+        html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
+
+    mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
+   
+
+    try:
+        sender   = mailInfo['sender']
+
         msg = Message( mailInfo['subject'],
                   sender=sender,
                   html=html,
                   recipients=[email])
-                  
-                  
         mail.send(msg)
 
     except StopAsyncIteration:
