@@ -298,9 +298,10 @@ def updateCheckBox():
         collectionName = data['appName']
         print(collectionName)
         if collectionName == "play":
-            print(collectionName)
+            print("update play")
             new_id = mongo.db.play.update({'_id':  ObjectId(idRecord)}, { '$set':{fieldName: newVal}}, upsert=False)
         elif collectionName == "ballet":
+            print("update BALLET")
             new_id = mongo.db.ballet.update({'_id':  ObjectId(idRecord)}, { '$set':{fieldName: newVal}}, upsert=False)    
         # updateQuery = 'mongo.db.'+collectionName+'.update({"_id":  '+ ObjectId(idRecord) +'},{ "$set":{"registred": '+newVal+'}}, upsert=False')
         # new_id = eval(updateQuery)
