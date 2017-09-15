@@ -737,6 +737,7 @@ def send_email():
         nom      = profile[0]['nom']
         prenom    = profile[1]['firstname']
         email    = profile[3]['email']
+        sender   = "('BDE PLAY',"+ mailInfo['sender'] + ")"
 
         # PREPARE CONFIRMATION MSG
         html = "Afin de valider votre inscription, merci de bien vouloir payer la somme de 140€ sur le compte suivant: <br><br><table><tr><td>TITULAIRE DU COMPTE: </td><td> Bureau des élèves-ISEB</td></tr><tr><td>IBAN: </td><td>  FR76 1558 9297 1803 0818 3454 079</td></tr><tr><td>COMMUNICATION: </td><td> Bde play "+nom +" "+ prenom + " </td></tr></table>"          
@@ -764,12 +765,13 @@ def send_email():
         country  = profile[4]['country']
 
         html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
+        sender   = mailInfo['sender']
 
     mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
    
-
+    
     try:
-        sender   = mailInfo['sender']
+        
 
         msg = Message( mailInfo['subject'],
                   sender=sender,
