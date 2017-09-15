@@ -740,11 +740,15 @@ def send_email():
         nom      = profile[0]['nom']
         prenom    = profile[1]['firstname']
         email    = profile[3]['email']
-        sender   = "('BDE PLAY',"+ mailInfo['sender'] + ")"
+        sender   = mailInfo['sender']
 
         # PREPARE CONFIRMATION MSG
         html = "Afin de valider votre inscription, merci de bien vouloir payer la somme de 140€ sur le compte suivant: <br><br><table><tr><td>TITULAIRE DU COMPTE: </td><td> Bureau des élèves-ISEB</td></tr><tr><td>IBAN: </td><td>  FR76 1558 9297 1803 0818 3454 079</td></tr><tr><td>COMMUNICATION: </td><td> Bde play "+nom +" "+ prenom + " </td></tr></table>"          
-       
+        
+        msg = Message( mailInfo['subject'],
+        sender=('BDE PLAY', sender),
+        html=html,
+        recipients=[email])       
 
     else:
         app.config['MAIL_SERVER']='smtp.live.com'
@@ -770,16 +774,16 @@ def send_email():
         html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
         sender   = mailInfo['sender']
 
-    
+        msg = Message( mailInfo['subject'],
+        sender=sender,
+        html=html,
+        recipients=[email])
    
     
     try:
         
 
-        msg = Message( mailInfo['subject'],
-                  sender=sender,
-                  html=html,
-                  recipients=[email])
+
         mail.send(msg)
 
     except StopAsyncIteration:
