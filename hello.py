@@ -722,6 +722,9 @@ def send_email():
     appName = data['app_name']
 
     mailCollection = mongo.db.mails
+    mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
+
+
     if appName == 'play':
         app.config['MAIL_SERVER']='smtp.live.com'
         app.config['MAIL_PORT'] = 25
@@ -767,7 +770,7 @@ def send_email():
         html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
         sender   = mailInfo['sender']
 
-    mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
+    
    
     
     try:
