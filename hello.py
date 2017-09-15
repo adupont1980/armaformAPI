@@ -739,7 +739,7 @@ def send_email():
         email    = profile[3]['email']
 
         # PREPARE CONFIRMATION MSG
-        html = "<table><tr><td>TITULAIRE DU COMPTE: </td><td> Bureau des élèves-ISEB</td></tr><tr><td>IBAN: </td><td>  FR76 1558 9297 1803 0818 3454 079</td></tr><tr><td>COMMUNICATION: </td><td> Bde play "+nom +" "+ prenom + " </td></tr></table>"          
+        html = "Afin de valider votre inscription, merci de bien vouloir payer la somme de 140€ sur le compte suivant: <br><br><table><tr><td>TITULAIRE DU COMPTE: </td><td> Bureau des élèves-ISEB</td></tr><tr><td>IBAN: </td><td>  FR76 1558 9297 1803 0818 3454 079</td></tr><tr><td>COMMUNICATION: </td><td> Bde play "+nom +" "+ prenom + " </td></tr></table>"          
        
 
     else:
