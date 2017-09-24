@@ -13,7 +13,7 @@ from datetime import datetime
 import cloudinary 
 import cloudinary.uploader
 import cloudinary.api
-import pyJWT
+import PyJWT
 from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
