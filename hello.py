@@ -261,7 +261,8 @@ def save_step():
             print(tokenFromApp)
             print(encodedToken)
             if referer == 'https://bde-play.herokuapp.com/step':
-            # if str(encodedToken) == tokenFromApp:
+                # https://bde-play.herokuapp.com
+                # if str(encodedToken) == tokenFromApp:
                 safeOrigin = True
                 print('key OK we can save source is safe')
         else:
