@@ -240,44 +240,67 @@ def storeFile():
 #####################################
 @app.route('/save_datas', methods=['POST'])
 def save_step():
-    print(request)
+    referer = request.headers.get('referer')
+    print(referer)
+
     data = request.get_json(force=True)
     fileNameList = []
     objToSave = {}
+    safeOrigin = False
+    x = 0
     for obj in data:
+        print(x)
         print(obj)
-        # if 'file_uploaded' in obj:
-        #     fileNameList.append({"name": obj['nom'], "details": [{"file_url": obj['file_url'] }]})
-        #     print(obj['nom'])
-        # print(obj)
-        if 'app_name' in obj:
+        if 'token' in obj:
+        
+            tokenFromApp = obj['token']
             collectionName = obj['app_name']
-            # SET NEEDED DATA
-            if obj['app_name'] == 'ballet':
-                obj.update({
-                "group": "WITHOUT GROUP", "DNI": "", "BECA": "",
-                "notes": "", "father": "", "dob": "", 
-                "contract":"", "intolerencia": "", "residence_duration": "", 
-                "phone2":"", "email2": "", "registred":False})
-            if obj['app_name'] == 'play':
-                 obj.update({ "paid": False, "registred":False})
-        objToSave.update(obj)
-    
+            
+            masterData = mongo.db.master.find_one({"name": collectionName})
+            encodedToken = jwt.encode({'key_gen': masterData['key_gen']}, 'secret', algorithm='HS256')
+            print(tokenFromApp)
+            print(encodedToken)
+            if referer == 'https://bde-play.herokuapp.com/step':
+            # if str(encodedToken) == tokenFromApp:
+                safeOrigin = True
+                print('key OK we can save source is safe')
+        else:
+            # if 'file_uploaded' in obj:
+            #     fileNameList.append({"name": obj['nom'], "details": [{"file_url": obj['file_url'] }]})
+            #     print(obj['nom'])
+            # print(obj)
+            if 'app_name' in obj:
+                collectionName = obj['app_name']
+                # SET NEEDED DATA
+                if obj['app_name'] == 'ballet':
+                    obj.update({
+                    "group": "WITHOUT GROUP", "DNI": "", "BECA": "",
+                    "notes": "", "father": "", "dob": "", 
+                    "contract":"", "intolerencia": "", "residence_duration": "", 
+                    "phone2":"", "email2": "", "registred":False})
+                if obj['app_name'] == 'play':
+                    obj.update({ "paid": False, "registred":False})
+            objToSave.update(obj)
+        x = x + 1
+
     currentDate = { "currentDate" : str(datetime.now())}
     # print(obj['master'])
     objToSave.update(currentDate)
+    
     print(objToSave)    
-
-    collection = 'mongo.db.'+collectionName+'.insert_one('+ str(objToSave) +')'
-    print(collection)
+    if safeOrigin:
+        collection = 'mongo.db.'+collectionName+'.insert_one('+ str(objToSave) +')'
+        print(collection)
             
-    new_id = eval(collection)
-    print(new_id.inserted_id)
-    # docs_list  = list(cursor)
+        new_id = eval(collection)
+        print(new_id.inserted_id)
+        # docs_list  = list(cursor)
 
-    # new_id = mongo.db.insert(objToSave)
-    # print(new_id)
-    return str(new_id.inserted_id)
+        # new_id = mongo.db.insert(objToSave)
+        # print(new_id)
+        return str(new_id.inserted_id)
+    else:
+        return str('NO_NO_NO')
 
     # Response(
     # json_util.dumps({'id': id},mimetype='application/json')
@@ -296,30 +319,13 @@ def updateCheckBox():
     fieldName = data['field_name']
     if "appName" in data:
         collectionName = data['appName']
-        print(collectionName)
-        if collectionName == "play":
-            print("update play")
-            new_id = mongo.db.play.update({'_id':  ObjectId(idRecord)}, { '$set':{fieldName: newVal}}, upsert=False)
-        elif collectionName == "ballet":
-            print("update BALLET")
-            new_id = mongo.db.ballet.update({'_id':  ObjectId(idRecord)}, { '$set':{fieldName: newVal}}, upsert=False)    
-        # updateQuery = 'mongo.db.'+collectionName+'.update({"_id":  '+ ObjectId(idRecord) +'},{ "$set":{"registred": '+newVal+'}}, upsert=False')
-        # new_id = eval(updateQuery)
-    else:
-        new_id = mongo.db.datas.update({'_id':  ObjectId(idRecord)}, { '$set':{fieldName: newVal}}, upsert=False)
-    print(new_id)
-    print(idRecord)
+        boolVal = str(newVal)
+        # query = "mongo.db."+collectionName+.update({'_id': "+ idRecord +"},{ '$set': {"+ fieldName +":"+ newVal + "}},"+ upsert=False + ")"
+        collection = eval("mongo.db."+collectionName)
     
-    
-    # objToSave = {"result": "ok"}
-    # for obj in data:
-    #     print(obj)
-    #     objToSave.update(obj)
-    #print()
-    return new_id
-
-
-
+        query = "mongo.db."+collectionName+".update({'_id': ObjectId('"+ idRecord+ "')}, { '$set':{'"+fieldName+"':"+ boolVal+"}}, upsert="+str(False)+")"
+        new_id = eval(query)
+    return str(new_id)
 
 ##################################
 # SET GROUP TO USER 
@@ -357,6 +363,9 @@ def get_steps():
     # master name: TO FIND WHICH STEPS WE NEED
     # master type: WORKFLOW || FORM 
 
+    # if (pbkdf2_sha256.verify(credentials['password'], user['password'])):
+    encodedToken = jwt.encode({'key_gen': master['key_gen']}, 'secret', algorithm='HS256')
+
     Steps = mongo.db.steps.find({"master": appName}).sort("step_id",1)
     # .sort("step_id",1)  {$elemMatch:{$eq:"auto"}}}, {"_id":0})
     logoUrl = ""
@@ -381,7 +390,8 @@ def get_steps():
         "name": step['name'],
         "type": step['type'],
         "configuration": step['configuration'],
-        "conditions": conditions
+        "conditions": conditions,
+        "token": str(encodedToken)
         })
         
 
@@ -454,7 +464,7 @@ def get_datas():
         gridCollection = mongo.db.grids
         
         grid = gridCollection.find_one({"name":gridName })
-        
+        print(grid['master'])
         if "master" in grid:
             collectionName = grid['master']
             tmpDataCol = "mongo.db." + collectionName
