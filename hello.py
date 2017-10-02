@@ -1010,51 +1010,51 @@ def updateStudent():
         }, upsert=False)
     return str(new_id)
 
-@app.route('/export_excel', methods=['POST'])
-@cross_origin()
-def exportExcel():
-    formValues = request.get_json()
-    print(formValues)
-    print('export')
-    # si = StringIO()
-    # cw = csv.writer(si)
-    # csvList = []
-    # csvList.append(['all','my','data','goes','here'])
-    # cw.writerows(csvList)
+# @app.route('/export_excel', methods=['POST'])
+# @cross_origin()
+# def exportExcel():
+#     formValues = request.get_json()
+#     print(formValues)
+#     print('export')
+#     # si = StringIO()
+#     # cw = csv.writer(si)
+#     # csvList = []
+#     # csvList.append(['all','my','data','goes','here'])
+#     # cw.writerows(csvList)
     
-    # elf.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
-    # self.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+#     # elf.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
+#     # self.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 
 
-    data = StringIO()
-    w = csv.writer()  writer(data)
+#     data = StringIO()
+#     w = csv.writer()  writer(data)
 
-    w.writerow((
-            "xxx",
-            "zzz"  # format datetime as string
-        ))
+#     w.writerow((
+#             "xxx",
+#             "zzz"  # format datetime as string
+#         ))
 
-    # write each log item
-    # for item in log:
-    #     w.writerow((
-    #         item[0],
-    #         item[1].isoformat()  # format datetime as string
-    #     ))
-    #     yield data.getvalue()
-    #     data.seek(0)
-    #     data.truncate(0)
+#     # write each log item
+#     # for item in log:
+#     #     w.writerow((
+#     #         item[0],
+#     #         item[1].isoformat()  # format datetime as string
+#     #     ))
+#     #     yield data.getvalue()
+#     #     data.seek(0)
+#     #     data.truncate(0)
 
 
     
-    # output.headers["Access-Control-Allow-Origin"]
-    headers = Headers()
-    headers.set('Content-Disposition', 'attachment', filename='log.csv')
-    # output.headers["Content-Disposition"] = "attachment, filename=sample.csv"
-    # output.headers["Content-type"] = "text/csv"
+#     # output.headers["Access-Control-Allow-Origin"]
+#     headers = Headers()
+#     headers.set('Content-Disposition', 'attachment', filename='log.csv')
+#     # output.headers["Content-Disposition"] = "attachment, filename=sample.csv"
+#     # output.headers["Content-type"] = "text/csv"
 
-    return Response(
-        w,mimetype='text/csv', headers=headers
-    )
+#     return Response(
+#         w,mimetype='text/csv', headers=headers
+#     )
 
 
 if __name__ == "__main__":
