@@ -17,7 +17,7 @@ import jwt
 from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
-# import operator
+import operator
 # from io import StringIO
 # import csv
 # from openpyxl import Workbook
