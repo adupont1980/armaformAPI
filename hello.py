@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, Response, jsonify, make_response, stream_with_context
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 import pymongo
@@ -18,6 +18,13 @@ from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
 import operator
+from io import StringIO
+import csv
+from openpyxl import Workbook
+from werkzeug.datastructures import Headers
+
+
+# from flask import excel
 
 mail = Mail()
 
@@ -251,20 +258,30 @@ def save_step():
     for obj in data:
         print(x)
         print(obj)
-        if 'token' in obj:
         
+        # A MODIFIER QUAND J'AURAI CREE TOKEN
+        if 'app_name' in obj:
+            if obj['app_name'] == 'ballet':
+                safeOrigin = True
+        
+        if 'token' in obj:
             tokenFromApp = obj['token']
             collectionName = obj['app_name']
-            
+            print(collectionName)
+            print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
             masterData = mongo.db.master.find_one({"name": collectionName})
             encodedToken = jwt.encode({'key_gen': masterData['key_gen']}, 'secret', algorithm='HS256')
             print(tokenFromApp)
             print(encodedToken)
-            if referer == 'https://bde-play.herokuapp.com/step':
-                # https://bde-play.herokuapp.com
-                # if str(encodedToken) == tokenFromApp:
-                safeOrigin = True
-                print('key OK we can save source is safe')
+            if collectionName == 'play':
+                if referer == 'https://bde-play.herokuapp.com/step':
+                    # https://bde-play.herokuapp.com
+                    # if str(encodedToken) == tokenFromApp:
+                    safeOrigin = True
+                    print('key OK we can save source is safe')
+            
+            print("SAFE ORIGIN: ")
+            print(safeOrigin)    
         else:
             # if 'file_uploaded' in obj:
             #     fileNameList.append({"name": obj['nom'], "details": [{"file_url": obj['file_url'] }]})
@@ -326,6 +343,19 @@ def updateCheckBox():
     
         query = "mongo.db."+collectionName+".update({'_id': ObjectId('"+ idRecord+ "')}, { '$set':{'"+fieldName+"':"+ boolVal+"}}, upsert="+str(False)+")"
         new_id = eval(query)
+    return str(new_id)
+
+##################################
+# UPDATE COURSE TYPE 
+###################################
+@app.route('/update_course_type', methods=['POST'])
+@cross_origin()
+def updateCourseType():
+    data = request.get_json(force=True)
+    idStudent = data['_id']
+    course = data['course_type']
+
+    new_id = mongo.db.ballet.update({'_id': ObjectId(idStudent)}, { '$set': {"course_type": course}})
     return str(new_id)
 
 ##################################
@@ -493,8 +523,8 @@ def get_datas():
         else:
             datas = dataCollection.find({})
         
+        # SORTED
         if 'sorted' in grid:
-            
             # sortBy = grid['sorted'][0]
             sortBy = []
             for toSort in grid['sorted']:
@@ -529,6 +559,7 @@ def get_datas():
         else:
             output.append({'config': grid['cols']})
         print('startDataCollections')
+        course_list = []
         # Pour chaque élement de la collection data
         for s in datas:
             # print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
@@ -608,14 +639,24 @@ def get_datas():
                     # record.update({dicCol['field_panel_name']: listValuesFieldPanel})    
                 elif 'type' in dicCol: 
                     if dicCol['type'] == 'checkbox':
-                        print('ùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùùù')
-                        print(dicCol['type'])
-                        
                         if dicCol['data'] in s:
                             record.update({dicCol['data']: s[dicCol['data']]})
                         else:
                             record.update({dicCol['data']: False})
                         
+                    if dicCol['type'] == 'combo':
+                        if (len(course_list) == 0):
+                            course_cursor = mongo.db.balletCourse.find({"stage": filterSelected},{"name":1})
+                            print(filterSelected)
+                            print(course_cursor)
+                            for courses in course_cursor:
+                                course_list.append(courses['name'])
+                            print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+                            print(course_list)
+                        if dicCol['data'] in s:
+                            record.update({dicCol['data']: s[dicCol['data']]})
+                            record.update({'course_list': course_list}) 
+
                         
                 else:
                     #SI PAS FIELD PANEL ALORS COLONNE CLASIQUE TITLE + DATA
@@ -633,20 +674,6 @@ def get_datas():
                 detailContent = []
                 # detailContent.append({"activated": True})
                 if 'activated' in grid['details']:
-                    # detailContent.append(dicDetails)
-                   
-                    # for dicDetails in grid['details']['fields']:
-                    #     print(dicDetails)
-                    #     print('ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ')
-                    #     if dicDetails['type'] == 'file_details':
-                    #         print(dicDetails['file_name'])
-                    #         print(s['version'])
-                    #         detailContent.append({"file_name": dicDetails['file_name'], "label": dicDetails['label'], "file_url": "blabla" })
-                    #     else:
-                    #         print(dicDetails['data'])
-                    #         print(s[dicDetails['data']])
-                    #         detailContent.append({dicDetails['data']:s[dicDetails['data']], "label": dicDetails['label'], "type":dicDetails['type'] })
-                    # record.update({"detail":detailContent, "details": {"activated": True}})
                     record.update({"details": {"activated": True}})
                 else:
                     record.update({"details": {"activated": False}})
@@ -833,7 +860,7 @@ def getGroups():
     stage = request.args['stage']
     print(courseType)
     print(stage)
-    groups = collection = mongo.db.balletCourse.find({"name": courseType}).distinct("groups")
+    groups = collection = mongo.db.balletCourse.find({"name": courseType, "stage": stage}).distinct("groups")
     
     pipeLine1 = [
         { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage }, 
@@ -982,6 +1009,53 @@ def updateStudent():
             }
         }, upsert=False)
     return str(new_id)
+
+@app.route('/export_excel', methods=['POST'])
+@cross_origin()
+def exportExcel():
+    formValues = request.get_json()
+    print(formValues)
+    print('export')
+    # si = StringIO()
+    # cw = csv.writer(si)
+    # csvList = []
+    # csvList.append(['all','my','data','goes','here'])
+    # cw.writerows(csvList)
+    
+    # elf.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
+    # self.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+
+
+    data = StringIO()
+    w = csv.writer(data)
+
+    w.writerow((
+            "xxx",
+            "zzz"  # format datetime as string
+        ))
+
+    # write each log item
+    # for item in log:
+    #     w.writerow((
+    #         item[0],
+    #         item[1].isoformat()  # format datetime as string
+    #     ))
+    #     yield data.getvalue()
+    #     data.seek(0)
+    #     data.truncate(0)
+
+
+    
+    # output.headers["Access-Control-Allow-Origin"]
+    headers = Headers()
+    headers.set('Content-Disposition', 'attachment', filename='log.csv')
+    # output.headers["Content-Disposition"] = "attachment, filename=sample.csv"
+    # output.headers["Content-type"] = "text/csv"
+
+    return Response(
+        w,mimetype='text/csv', headers=headers
+    )
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
