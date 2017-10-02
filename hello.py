@@ -17,11 +17,11 @@ import jwt
 from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
-import operator
-from io import StringIO
-import csv
-from openpyxl import Workbook
-from werkzeug.datastructures import Headers
+# import operator
+# from io import StringIO
+# import csv
+# from openpyxl import Workbook
+# from werkzeug.datastructures import Headers
 
 
 # from flask import excel
@@ -1027,7 +1027,7 @@ def exportExcel():
 
 
     data = StringIO()
-    w = csv.writer(data)
+    w = csv.writer()  writer(data)
 
     w.writerow((
             "xxx",
