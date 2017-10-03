@@ -809,7 +809,6 @@ def send_email():
         nom      = profile[1]['nom']
         prenom   = profile[0]['firstname']
         email    = profile[3]['email']
-        country  = profile[4]['country']
 
         html = "Dear "+ prenom + ", Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
         sender   = mailInfo['sender']
