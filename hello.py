@@ -503,7 +503,7 @@ def get_datas():
         else:
             dataCollection = mongo.db.datas
 
-        print(dataCollection)
+        print( )
         
         # FILTERED
         if 'filtered' in grid:
@@ -806,11 +806,12 @@ def send_email():
         course   = formData['course_type']
         
         profile  = formData['profile']
-        nom      = profile[0]['nom']
+        nom      = profile[1]['nom']
+        prenom   = profile[0]['firstname']
         email    = profile[3]['email']
         country  = profile[4]['country']
 
-        html = "Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
+        html = "Dear "+ prenom + ", Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
         sender   = mailInfo['sender']
 
         msg = Message( mailInfo['subject'],
