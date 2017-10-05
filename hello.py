@@ -800,7 +800,7 @@ def send_email():
         prenom   = profile[0]['firstname']
         email    = profile[3]['email']
 
-        html = "Dear "+ prenom + ",<br><br> We have received your registration form and will contact you in a short time. <br><br> Yours sincerely,<br><br> <img src='http://res.cloudinary.com/hk5fms7st/image/upload/v1507205982/E05815277543397E4D847EA6EE17412C33E7A8D4753B01084D_pimgpsh_fullsize_distr_frivwn.png'">
+        html = "Dear "+ prenom + ",<br><br> We have received your registration form and will contact you in a short time. <br><br> Yours sincerely,<br><br> <img src='http://res.cloudinary.com/hk5fms7st/image/upload/v1507205982/E05815277543397E4D847EA6EE17412C33E7A8D4753B01084D_pimgpsh_fullsize_distr_frivwn.png'>"
         sender   = mailInfo['sender']
 
         msg = Message( mailInfo['subject'],
