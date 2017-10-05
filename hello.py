@@ -749,9 +749,6 @@ def getGrids():
 ###############
 @app.route('/send_mail', methods=['POST'])
 def send_email():
-    
-
-    
     mail.init_app(app)
 
     data = request.get_json(force=True)
@@ -800,17 +797,10 @@ def send_email():
         dataCollection = mongo.db.ballet
         formData = dataCollection.find_one({"_id":ObjectId(formId)})
         # GET INFO TO PUT IN TEMPLATE
-        age      = formData['age']
-        xp       = formData['years_of_experience']
-        duration = formData['duration']
-        course   = formData['course_type']
-        
-        profile  = formData['profile']
-        nom      = profile[1]['nom']
         prenom   = profile[0]['firstname']
         email    = profile[3]['email']
 
-        html = "Dear "+ prenom + ", Thank your for your registration to the "+ course + " course <br>. Duration of the course: " + duration
+        html = "Dear "+ prenom + ",<br><br> We have received your registration form and will contact you in a short time. <br><br> Yours sincerely,<br><br> <img src='http://res.cloudinary.com/hk5fms7st/image/upload/v1507205982/E05815277543397E4D847EA6EE17412C33E7A8D4753B01084D_pimgpsh_fullsize_distr_frivwn.png'">
         sender   = mailInfo['sender']
 
         msg = Message( mailInfo['subject'],
