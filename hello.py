@@ -797,6 +797,7 @@ def send_email():
         dataCollection = mongo.db.ballet
         formData = dataCollection.find_one({"_id":ObjectId(formId)})
         # GET INFO TO PUT IN TEMPLATE
+        profile  = formData['profile']
         prenom   = profile[0]['firstname']
         email    = profile[3]['email']
 
