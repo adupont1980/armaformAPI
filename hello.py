@@ -794,7 +794,8 @@ def send_email():
         app.config['MAIL_PASSWORD'] = 'Rmbc2015'
         app.config['MAIL_USE_TLS'] = True
         app.config['MAIL_USE_SSL'] = False
-        
+        app.config['MAIL_DEBUG'] = True
+
         dataCollection = mongo.db.ballet
         formData = dataCollection.find_one({"_id":ObjectId(formId)})
         # GET INFO TO PUT IN TEMPLATE
@@ -813,8 +814,9 @@ def send_email():
    
     
     try:
+        print('before sending message')
         mail.send(msg)
-
+        print('after sending message')
     except StopAsyncIteration:
         print("Empty cursor")
 
