@@ -788,7 +788,7 @@ def send_email():
         recipients=[email])       
 
     else:
-        app.config['MAIL_SERVER']='smtp.1and1.es'
+        app.config['MAIL_SERVER']='smtp.1and1.com'
         app.config['MAIL_PORT'] = 25
         app.config['MAIL_USERNAME'] = 'info@russianmastersballet.com'
         app.config['MAIL_PASSWORD'] = 'Rmbc2015'
