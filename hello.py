@@ -18,6 +18,7 @@ from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
 import operator
+from flask.ext import excel
 # from io import StringIO
 # import csv
 # from openpyxl import Workbook
@@ -787,10 +788,10 @@ def send_email():
         recipients=[email])       
 
     else:
-        app.config['MAIL_SERVER']='smtp.live.com'
-        app.config['MAIL_PORT'] = 25
-        app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
-        app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+        app.config['MAIL_SERVER']='smtp.1and1.es'
+        app.config['MAIL_PORT'] = 587
+        app.config['MAIL_USERNAME'] = 'info@russianmastersballet.com'
+        app.config['MAIL_PASSWORD'] = 'Rmbc2015'
         app.config['MAIL_USE_TLS'] = True
         app.config['MAIL_USE_SSL'] = False
         
@@ -801,7 +802,8 @@ def send_email():
         prenom   = profile[0]['firstname']
         email    = profile[3]['email']
 
-        html = "Dear "+ prenom + ",<br><br> We have received your registration form and will contact you in a short time. <br><br> Yours sincerely,<br><br> <img src='http://res.cloudinary.com/hk5fms7st/image/upload/v1507205982/E05815277543397E4D847EA6EE17412C33E7A8D4753B01084D_pimgpsh_fullsize_distr_frivwn.png'>"
+        # html = "Dear "+ prenom + ",<br><br> We have received your registration form and will contact you in a short time. <br><br> Yours sincerely,<br><br>Yulia Mahilinskaya <br>Mobile: + 34 609816395<br> Skype: russianmastersballet<br> <img src='http://res.cloudinary.com/hk5fms7st/image/upload/v1507205982/E05815277543397E4D847EA6EE17412C33E7A8D4753B01084D_pimgpsh_fullsize_distr_frivwn.png'>"
+        html = "Dear "+ prenom + ",<br><br> We have received your registration form and will contact you in a short time. <br><br> Yours sincerely,<br><br>Yulia Mahilinskaya <br>Mobile: + 34 609816395<br> Skype: russianmastersballet<br>"
         sender   = mailInfo['sender']
 
         msg = Message( mailInfo['subject'],
@@ -1001,12 +1003,14 @@ def updateStudent():
         }, upsert=False)
     return str(new_id)
 
-# @app.route('/export_excel', methods=['POST'])
-# @cross_origin()
-# def exportExcel():
-#     formValues = request.get_json()
-#     print(formValues)
-#     print('export')
+@app.route('/export_excel', methods=['POST'])
+@cross_origin()
+def exportExcel():
+    formValues = request.get_json()
+    print(formValues)
+    print('export')
+    return 'ok'
+    # return excel.make_response_from_array([[1,2], [3, 4]], "csv")
 #     # si = StringIO()
 #     # cw = csv.writer(si)
 #     # csvList = []
