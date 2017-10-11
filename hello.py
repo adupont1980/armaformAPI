@@ -789,7 +789,7 @@ def send_email():
 
     else:
         app.config['MAIL_SERVER']='smtp.1and1.es'
-        app.config['MAIL_PORT'] = 587
+        app.config['MAIL_PORT'] = 25
         app.config['MAIL_USERNAME'] = 'info@russianmastersballet.com'
         app.config['MAIL_PASSWORD'] = 'Rmbc2015'
         app.config['MAIL_USE_TLS'] = True
@@ -813,9 +813,6 @@ def send_email():
    
     
     try:
-        
-
-
         mail.send(msg)
 
     except StopAsyncIteration:
