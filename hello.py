@@ -18,7 +18,7 @@ from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
 import operator
-from flask.ext import excel
+# from flask.ext import excel
 # from io import StringIO
 # import csv
 # from openpyxl import Workbook
@@ -1003,13 +1003,13 @@ def updateStudent():
         }, upsert=False)
     return str(new_id)
 
-@app.route('/export_excel', methods=['POST'])
-@cross_origin()
-def exportExcel():
-    formValues = request.get_json()
-    print(formValues)
-    print('export')
-    return 'ok'
+# @app.route('/export_excel', methods=['POST'])
+# @cross_origin()
+# def exportExcel():
+#     formValues = request.get_json()
+#     print(formValues)
+#     print('export')
+#     return 'ok'
     # return excel.make_response_from_array([[1,2], [3, 4]], "csv")
 #     # si = StringIO()
 #     # cw = csv.writer(si)
