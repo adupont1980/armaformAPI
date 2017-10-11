@@ -789,11 +789,11 @@ def send_email():
 
     else:
         app.config['MAIL_SERVER']='smtp.1and1.com'
-        app.config['MAIL_PORT'] = 993
+        app.config['MAIL_PORT'] = 587
         app.config['MAIL_USERNAME'] = 'info@russianmastersballet.com'
         app.config['MAIL_PASSWORD'] = 'Rmbc2015'
-        app.config['MAIL_USE_TLS'] = False
-        app.config['MAIL_USE_SSL'] = True
+        app.config['MAIL_USE_TLS'] = True
+        app.config['MAIL_USE_SSL'] = False
         
         dataCollection = mongo.db.ballet
         formData = dataCollection.find_one({"_id":ObjectId(formId)})
