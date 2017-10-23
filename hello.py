@@ -825,7 +825,7 @@ def send_email():
         app.config['MAIL_USERNAME'] = 'info@russianmastersballet.com'
         app.config['MAIL_PASSWORD'] = 'Rmbc2015'
         app.config['MAIL_USE_TLS'] = True
-        app.config['MAIL_USE_SSL'] = False
+        app.config['MAIL_USE_SSL'] = True
         app.config['MAIL_DEBUG'] = True
         app.config['TESTING'] = False
 
