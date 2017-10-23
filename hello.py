@@ -45,7 +45,8 @@ MONGO_URL = os.environ.get('MONGO_URL')
 
 #DEV PURPOSE
 if not MONGO_URL:
-     MONGO_URL = "mongodb://localhost:27017/auto";
+    #  MONGO_URL = "mongodb://localhost:27017/cargo_friend";
+    MONGO_URL = "mongodb://localhost:27017/auto";
 
 app.config['MONGO_URI'] = MONGO_URL
 mongo = PyMongo(app)
@@ -386,6 +387,7 @@ def get_steps():
     # LIST OF STEPS FROM SELECTED MASTER
     output = []
     appName = request.args['app_name']
+    print(appName)
     master = mongo.db.master.find_one({"name": appName})
     print(master)
     # for master in masterSteps:
@@ -396,6 +398,7 @@ def get_steps():
     # master type: WORKFLOW || FORM 
 
     # if (pbkdf2_sha256.verify(credentials['password'], user['password'])):
+
     encodedToken = jwt.encode({'key_gen': master['key_gen']}, 'secret', algorithm='HS256')
 
     Steps = mongo.db.steps.find({"master": appName}).sort("step_id",1)
@@ -446,14 +449,14 @@ def get_details():
     return json.dumps(details, default=json_util.default)
 
 ########################
-# GET DETAILS BALLET (BALLET APP)  #
+# GET DETAILS CARGO (CARGO APP)  #
 ########################
-@app.route('/ballet_details', methods=['GET'])
+@app.route('/cargo_details', methods=['GET'])
 @cross_origin()
-def get_ballet_details():
+def get_cargo_details():
     objId = request.args['id']
     print(objId)
-    dataCollection = mongo.db.ballet
+    dataCollection = mongo.db.rates
     details = dataCollection.find_one({"_id":ObjectId(objId)})
     # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
     # print(details['import'])
@@ -478,7 +481,21 @@ def get_tech_details():
     # print(details)
     return json.dumps(details, default=json_util.default)
 
-
+########################
+# GET DETAILS BALLET (BALLET APP)  #
+########################
+@app.route('/ballet_details', methods=['GET'])
+@cross_origin()
+def get_ballet_details():
+    objId = request.args['id']
+    print(objId)
+    dataCollection = mongo.db.ballet
+    details = dataCollection.find_one({"_id":ObjectId(objId)})
+    # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
+    # print(details['import'])
+    print('jjjjjjjjjjjj')
+    # print(details)
+    return json.dumps(details, default=json_util.default)
 
 # ######################
 #   GET DATA FOR GRID
@@ -497,7 +514,11 @@ def get_datas():
         
         grid = gridCollection.find_one({"name":gridName })
         print(grid['master'])
-        if "master" in grid:
+        if "collection" in grid:
+            collectionName = grid['collection']
+            tmpDataCol = "mongo.db." + collectionName
+            dataCollection = eval(tmpDataCol)
+        elif "master" in grid:
             collectionName = grid['master']
             tmpDataCol = "mongo.db." + collectionName
             dataCollection = eval(tmpDataCol)
@@ -566,8 +587,14 @@ def get_datas():
             # print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
             # print(s)
             # print(str(s["_id"]))
-            record = {"step_id": str(s["step_id"])}
+            if "step_id" in s:
+                record = {"step_id": str(s["step_id"])}
+            else:
+                record = {}
             record.update({"_id": str(s["_id"])})
+
+            if "id_rate" in s:
+                record.update({"id_rate": str(s["id_rate"])})
             # READ ADD COLS FROM DATA GRID CONFIG
             listValuesFieldPanel = []
             # pour chaque element defini dans la collection grid
@@ -671,17 +698,22 @@ def get_datas():
             
             
             if 'details' in grid:
-                
-                detailContent = []
-                # detailContent.append({"activated": True})
                 if 'activated' in grid['details']:
                     record.update({"details": {"activated": True}})
                 else:
                     record.update({"details": {"activated": False}})
             else:
                 record.update({"details": {"activated": False}})
-                # output.append(detailContent)
             
+
+            if 'cargo_details' in grid:
+                if 'activated' in grid['cargo_details']:
+                    record.update({"cargo_details": {"activated": True}})
+                else:
+                    record.update({"cargo_details": {"activated": False}})
+            else:
+                record.update({"cargo_details": {"activated": False}})  
+
             # print(listValuesFieldPanel)
             output.append(record)
             # print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
@@ -689,7 +721,7 @@ def get_datas():
             # print(grid)
             # print(grid['filtered'][0]['by'])
         
-        # p rint(output)
+        # print(output)
 
         # cursor = eval(data)
 
@@ -795,6 +827,7 @@ def send_email():
         app.config['MAIL_USE_TLS'] = True
         app.config['MAIL_USE_SSL'] = False
         app.config['MAIL_DEBUG'] = True
+        app.config['TESTING'] = False
 
         dataCollection = mongo.db.ballet
         formData = dataCollection.find_one({"_id":ObjectId(formId)})
@@ -815,6 +848,8 @@ def send_email():
     
     try:
         print('before sending message')
+        r = mail.send(msg)
+        print(r)
         mail.send(msg)
         print('after sending message')
     except StopAsyncIteration:
