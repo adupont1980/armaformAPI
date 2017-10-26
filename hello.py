@@ -19,6 +19,13 @@ from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
 import operator
 # from flask.ext import excel
+# import flask_excel as excel
+from email.mime.text import MIMEText
+import smtplib
+# import xlswriter
+# import tempfile
+from flask import after_this_request
+
 # from io import StringIO
 # import csv
 # from openpyxl import Workbook
@@ -807,7 +814,7 @@ def send_email():
         
         profile  = formData['profile']
         nom      = profile[0]['nom']
-        prenom    = profile[1]['firstname']
+        prenom   = profile[1]['firstname']
         email    = profile[3]['email']
         sender   = mailInfo['sender']
 
@@ -820,40 +827,28 @@ def send_email():
         recipients=[email])       
 
     else:
-        app.config['MAIL_SERVER']='smtp.1and1.com'
-        app.config['MAIL_PORT'] = 587
-        app.config['MAIL_USERNAME'] = 'info@russianmastersballet.com'
-        app.config['MAIL_PASSWORD'] = 'Rmbc2015'
-        app.config['MAIL_USE_TLS'] = True
-        app.config['MAIL_USE_SSL'] = True
-        app.config['MAIL_DEBUG'] = True
-        app.config['TESTING'] = False
 
         dataCollection = mongo.db.ballet
         formData = dataCollection.find_one({"_id":ObjectId(formId)})
         # GET INFO TO PUT IN TEMPLATE
         profile  = formData['profile']
+        print(profile[0])
         prenom   = profile[0]['firstname']
         email    = profile[3]['email']
 
-        # html = "Dear "+ prenom + ",<br><br> We have received your registration form and will contact you in a short time. <br><br> Yours sincerely,<br><br>Yulia Mahilinskaya <br>Mobile: + 34 609816395<br> Skype: russianmastersballet<br> <img src='http://res.cloudinary.com/hk5fms7st/image/upload/v1507205982/E05815277543397E4D847EA6EE17412C33E7A8D4753B01084D_pimgpsh_fullsize_distr_frivwn.png'>"
-        html = "Dear "+ prenom + ",<br><br> We have received your registration form and will contact you in a short time. <br><br> Yours sincerely,<br><br>Yulia Mahilinskaya <br>Mobile: + 34 609816395<br> Skype: russianmastersballet<br>"
-        sender   = mailInfo['sender']
+        me = 'info@russianmastersballet.com'
+        password = 'Rmbc2015'
 
-        msg = Message( mailInfo['subject'],
-        sender=sender,
-        html=html,
-        recipients=[email])
-   
-    
-    try:
-        print('before sending message')
-        r = mail.send(msg)
-        print(r)
-        mail.send(msg)
-        print('after sending message')
-    except StopAsyncIteration:
-        print("Empty cursor")
+        msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
+        msg['Subject'] = mailInfo['subject']
+        msg['From'] = me
+        msg['To'] = email
+        sender = mailInfo['sender']
+
+        session = smtplib.SMTP("smtp.1and1.com", 587)
+        session.login(me, password)
+        session.sendmail(me, email, msg.as_string())
+        session.quit()
 
     return ('OK')
 
@@ -1043,25 +1038,23 @@ def updateStudent():
 #     formValues = request.get_json()
 #     print(formValues)
 #     print('export')
-#     return 'ok'
-    # return excel.make_response_from_array([[1,2], [3, 4]], "csv")
 #     # si = StringIO()
 #     # cw = csv.writer(si)
 #     # csvList = []
 #     # csvList.append(['all','my','data','goes','here'])
 #     # cw.writerows(csvList)
     
-#     # elf.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
+#     # self.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
 #     # self.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 
 
-#     data = StringIO()
-#     w = csv.writer()  writer(data)
+#     # data = StringIO()
+#     # w = csv.writer()  writer(data)
 
-#     w.writerow((
-#             "xxx",
-#             "zzz"  # format datetime as string
-#         ))
+#     # w.writerow((
+#     #         "xxx",
+#     #         "zzz"  # format datetime as string
+#     #     ))
 
 #     # write each log item
 #     # for item in log:
@@ -1075,7 +1068,7 @@ def updateStudent():
 
 
     
-#     # output.headers["Access-Control-Allow-Origin"]
+#     output.headers["Access-Control-Allow-Origin"]
 #     headers = Headers()
 #     headers.set('Content-Disposition', 'attachment', filename='log.csv')
 #     # output.headers["Content-Disposition"] = "attachment, filename=sample.csv"
