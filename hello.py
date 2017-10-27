@@ -867,7 +867,7 @@ def send_email():
         msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
         msg['Subject'] = "New registration received"
         msg['From'] = me
-        msg['To'] = 'anthony_dupont@hotmail.com'
+        msg['To'] = me
 
 
         session = smtplib.SMTP("smtp.1and1.com", 587)
