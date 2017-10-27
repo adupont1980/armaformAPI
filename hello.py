@@ -19,12 +19,22 @@ from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
 import operator
 # from flask.ext import excel
-# import flask_excel as excel
+import flask_excel
 from email.mime.text import MIMEText
 import smtplib
 # import xlswriter
 # import tempfile
+
+
+
 from flask import after_this_request
+
+import xlwt
+import io
+import mimetypes
+from werkzeug.datastructures import Headers
+
+
 
 # from io import StringIO
 # import csv
@@ -832,9 +842,11 @@ def send_email():
         formData = dataCollection.find_one({"_id":ObjectId(formId)})
         # GET INFO TO PUT IN TEMPLATE
         profile  = formData['profile']
-        print(profile[0])
         prenom   = profile[0]['firstname']
+        nom      = profile[1]['nom']
         email    = profile[3]['email']
+        stage    = formData['stage']
+        course   = formData['course_type']
 
         me = 'info@russianmastersballet.com'
         password = 'Rmbc2015'
@@ -849,6 +861,20 @@ def send_email():
         session.login(me, password)
         session.sendmail(me, email, msg.as_string())
         session.quit()
+
+        # SEND NOTIFICATION TO ADMIN
+
+        msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
+        msg['Subject'] = "New registration received"
+        msg['From'] = me
+        msg['To'] = 'anthony_dupont@hotmail.com'
+
+
+        session = smtplib.SMTP("smtp.1and1.com", 587)
+        session.login(me, password)
+        session.sendmail(me, email, msg.as_string())
+        session.quit()
+
 
     return ('OK')
 
@@ -1032,13 +1058,80 @@ def updateStudent():
         }, upsert=False)
     return str(new_id)
 
-# @app.route('/export_excel', methods=['POST'])
-# @cross_origin()
-# def exportExcel():
-#     formValues = request.get_json()
-#     print(formValues)
-#     print('export')
-#     # si = StringIO()
+@app.route('/export_excel', methods=['POST'])
+@cross_origin()
+def exportExcel():
+    flask_excel.init_excel(app)
+    formValues = request.get_json()
+    print(formValues)
+    print('export')
+    # create_excel_sheet("BBB")
+   
+    response = Response()
+    response.status_code = 200
+
+    workbook = xlwt.Workbook()
+
+  
+    #.... code here for adding worksheets and cells
+
+    output = io.StringIO()
+    output.write('First line.\n')
+   
+    response.data = output.getvalue()
+    workbook.add_sheet('Professional').write(1,1,'val')
+    
+    ################################
+    # Code for setting correct
+    # headers for jquery.fileDownload
+    #################################
+    filename = 'export.xls'
+    mimetype_tuple = mimetypes.guess_type(filename)
+    workbook.save(filename)
+    #HTTP headers for forcing file download
+    response_headers = Headers({
+            'Pragma': "public",  # required,
+            'Expires': '0',
+            'Cache-Control': 'must-revalidate, post-check=0, pre-check=0',
+            'Cache-Control': 'private',  # required for certain browsers,
+            'Content-Type': mimetype_tuple[0],
+            'Content-Disposition': 'attachment; filename=\"%s\";' % filename,
+            'Content-Transfer-Encoding': 'binary',
+            'Content-Length': len(response.data)
+        })
+
+    if not mimetype_tuple[1] is None:
+        response.update({
+                'Content-Encoding': mimetype_tuple[1]
+            })
+
+    response.headers = response_headers
+
+    #as per jquery.fileDownload.js requirements
+    response.set_cookie('fileDownload', 'true', path='/')
+
+    ################################
+    # Return the response
+    #################################
+    return response 
+   
+   
+   
+    # output = flask_excel.make_response_from_array([[1,2], [3, 4]], "csv",
+    #                                       file_name="export_data")
+    # # output = excel.make_response()
+    # output.headers["Content-Disposition"] = "attachment; filename=" + \
+    #                                     'sheet.xlsx'
+    # output.headers["Content-type"] = \
+    #     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # # send_file(output)
+    
+    
+    # return output
+    
+    
+    
+    # si = StringIO()
 #     # cw = csv.writer(si)
 #     # csvList = []
 #     # csvList.append(['all','my','data','goes','here'])
