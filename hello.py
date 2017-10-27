@@ -19,8 +19,8 @@ from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
 import operator
 # from flask.ext import excel
-# import flask_excel
-# from email.mime.text import MIMEText
+import flask_excel
+from email.mime.text import MIMEText
 import smtplib
 # import xlswriter
 # import tempfile
@@ -29,10 +29,10 @@ import smtplib
 
 from flask import after_this_request
 
-# import xlwt
-# import io
-# import mimetypes
-# from werkzeug.datastructures import Headers
+import xlwt
+import io
+import mimetypes
+from werkzeug.datastructures import Headers
 
 
 
@@ -51,12 +51,6 @@ app = Flask(__name__)
 CORS(app)
 MONGO_URL = os.environ.get('MONGO_URL')
 
-# app.config['MAIL_SERVER']='smtp.live.com'
-# app.config['MAIL_PORT'] = 25
-# app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
-# app.config['MAIL_PASSWORD'] = 'Goodbye2012'
-# app.config['MAIL_USE_TLS'] = True
-# app.config['MAIL_USE_SSL'] = False
 
 # app.register_blueprint(auth)
 
@@ -872,7 +866,7 @@ def send_email():
 
         session = smtplib.SMTP("smtp.1and1.com", 587)
         session.login(me, password)
-        session.sendmail(me, email, msg.as_string())
+        session.sendmail(me, me, msg.as_string())
         session.quit()
 
 
