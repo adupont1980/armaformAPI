@@ -845,7 +845,7 @@ def send_email():
         me = 'info@russianmastersballet.com'
         password = 'Rmbc2015'
 
-        msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
+        msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\nEstimado/a "+ prenom + "\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
         msg['Subject'] = mailInfo['subject']
         msg['From'] = me
         msg['To'] = email
