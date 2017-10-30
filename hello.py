@@ -18,22 +18,18 @@ from flask_mail import Mail, Message
 from werkzeug.datastructures import ImmutableMultiDict
 from passlib.hash import pbkdf2_sha256
 import operator
-# from flask.ext import excel
-# import flask_excel
 from email.mime.text import MIMEText
 import smtplib
-# import xlswriter
-# import tempfile
-
-
+import csv
 
 from flask import after_this_request
 
-# import xlwt
-# import io
-# import mimetypes
-# from werkzeug.datastructures import Headers
-
+import xlwt
+import io
+import mimetypes
+from werkzeug.datastructures import Headers
+# from werkzeug.wrappers import Response
+# from cstringio import StringIO
 
 
 # from io import StringIO
@@ -845,7 +841,7 @@ def send_email():
         me = 'info@russianmastersballet.com'
         password = 'Rmbc2015'
 
-        msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\nEstimado/a "+ prenom + "\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
+        msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n\----------------------------------------------------------------------------------------n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
         msg['Subject'] = mailInfo['subject']
         msg['From'] = me
         msg['To'] = email
@@ -1052,118 +1048,88 @@ def updateStudent():
         }, upsert=False)
     return str(new_id)
 
+
+# example data, this could come from wherever you are storing logs
+log = [
+    ('login', datetime(2015, 1, 10, 5, 30)),
+    ('deposit', datetime(2015, 1, 10, 5, 35)),
+    ('order', datetime(2015, 1, 10, 5, 50)),
+    ('withdraw', datetime(2015, 1, 10, 6, 10)),
+    ('logout', datetime(2015, 1, 10, 6, 15))
+]
+
+
 @app.route('/export_excel', methods=['POST'])
 @cross_origin()
 def exportExcel():
-    flask_excel.init_excel(app)
+
     formValues = request.get_json()
+    
     print(formValues)
-    print('export')
-    # create_excel_sheet("BBB")
-   
-    response = Response()
-    response.status_code = 200
+    # print(request)
+    stage = formValues['stage']
+    course = formValues['course_type']
+    print(stage)
+    print(course)
 
-    workbook = xlwt.Workbook()
+        
 
-  
-    #.... code here for adding worksheets and cells
+    def generate():
+        print(course)
+        data = io.StringIO()
+        w = csv.writer(data)
 
-    output = io.StringIO()
-    output.write('First line.\n')
-   
-    response.data = output.getvalue()
-    workbook.add_sheet('Professional').write(1,1,'val')
-    
-    ################################
-    # Code for setting correct
-    # headers for jquery.fileDownload
-    #################################
-    filename = 'export.xls'
-    mimetype_tuple = mimetypes.guess_type(filename)
-    workbook.save(filename)
-    #HTTP headers for forcing file download
-    response_headers = Headers({
-            'Pragma': "public",  # required,
-            'Expires': '0',
-            'Cache-Control': 'must-revalidate, post-check=0, pre-check=0',
-            'Cache-Control': 'private',  # required for certain browsers,
-            'Content-Type': mimetype_tuple[0],
-            'Content-Disposition': 'attachment; filename=\"%s\";' % filename,
-            'Content-Transfer-Encoding': 'binary',
-            'Content-Length': len(response.data)
-        })
-
-    if not mimetype_tuple[1] is None:
-        response.update({
-                'Content-Encoding': mimetype_tuple[1]
-            })
-
-    response.headers = response_headers
-
-    #as per jquery.fileDownload.js requirements
-    response.set_cookie('fileDownload', 'true', path='/')
-
-    ################################
-    # Return the response
-    #################################
-    return response 
-   
-   
-   
-    # output = flask_excel.make_response_from_array([[1,2], [3, 4]], "csv",
-    #                                       file_name="export_data")
-    # # output = excel.make_response()
-    # output.headers["Content-Disposition"] = "attachment; filename=" + \
-    #                                     'sheet.xlsx'
-    # output.headers["Content-type"] = \
-    #     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    # # send_file(output)
-    
-    
-    # return output
-    
-    
-    
-    # si = StringIO()
-#     # cw = csv.writer(si)
-#     # csvList = []
-#     # csvList.append(['all','my','data','goes','here'])
-#     # cw.writerows(csvList)
-    
-#     # self.send_header("Access-Control-Expose-Headers", "Access-Control-Allow-Origin")
-#     # self.send_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-
-
-#     # data = StringIO()
-#     # w = csv.writer()  writer(data)
-
-#     # w.writerow((
-#     #         "xxx",
-#     #         "zzz"  # format datetime as string
-#     #     ))
-
-#     # write each log item
-#     # for item in log:
-#     #     w.writerow((
-#     #         item[0],
-#     #         item[1].isoformat()  # format datetime as string
-#     #     ))
-#     #     yield data.getvalue()
-#     #     data.seek(0)
-#     #     data.truncate(0)
-
+        # write header
+        w.writerow((
+                    'Course', 'Group', 'Firstname', 
+                    'Name', 'Age', 'Birthday', 'XP', 
+                    'Duration', 'Email', 'phone', 'Country', 
+                    'Residence', 'DNI', 'BECA',
+                    'Audition', 'Studied places', 'intolerance', 'notes',
+                    'father'  
+                   ))
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
 
     
-#     output.headers["Access-Control-Allow-Origin"]
-#     headers = Headers()
-#     headers.set('Content-Disposition', 'attachment', filename='log.csv')
-#     # output.headers["Content-Disposition"] = "attachment, filename=sample.csv"
-#     # output.headers["Content-type"] = "text/csv"
+        students = mongo.db.ballet.find({"stage": stage})
+       
+        try:
+            for student in students:
+                
+                profile  = student['profile']
+                prenom   = profile[0]['firstname']
+                nom      = profile[1]['nom']
+                phone    = profile[2]['phone']
+                email    = profile[3]['email']
+                country  = profile[5]['country']
+                birthday = profile[4]['birthdate']
+                studiedPlace = profile[7]['studied_places']
+                w.writerow((
+                    student['course_type'], student['group'], prenom,
+                    nom, student['age'], birthday, student['years_of_experience'],
+                    student['duration'], email, phone, country,
+                    student['residence'], student['DNI'], student['BECA'], 
+                    student['audition'], studiedPlace, student['intolerencia'], student['notes'],
+                    student['father']
+                ))
+                yield data.getvalue()
+                data.seek(0)
+                data.truncate(0)
+            
+        except StopAsyncIteration:
+            print("Empty cursor")   
+    # add a filename
+    headers = Headers()
+    headers.set('Content-Disposition', 'attachment', filename='log.csv')
+    
+    # stream the response as the data is generated
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/csv', headers=headers
+    )
 
-#     return Response(
-#         w,mimetype='text/csv', headers=headers
-#     )
 
 
 if __name__ == "__main__":
