@@ -24,21 +24,11 @@ import csv
 
 from flask import after_this_request
 
-import xlwt
+
 import io
 import mimetypes
 from werkzeug.datastructures import Headers
-# from werkzeug.wrappers import Response
-# from cstringio import StringIO
 
-
-# from io import StringIO
-# import csv
-# from openpyxl import Workbook
-# from werkzeug.datastructures import Headers
-
-
-# from flask import excel
 
 mail = Mail()
 
@@ -1092,7 +1082,7 @@ def exportExcel():
         data.seek(0)
         data.truncate(0)
 
-    
+
         students = mongo.db.ballet.find({"stage": stage})
        
         try:
