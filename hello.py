@@ -510,7 +510,6 @@ def get_datas():
         gridCollection = mongo.db.grids
         
         grid = gridCollection.find_one({"name":gridName })
-        print(grid['master'])
         if "collection" in grid:
             collectionName = grid['collection']
             tmpDataCol = "mongo.db." + collectionName
@@ -831,7 +830,7 @@ def send_email():
         me = 'info@russianmastersballet.com'
         password = 'Rmbc2015'
 
-        msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n\----------------------------------------------------------------------------------------n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
+        msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n----------------------------------------------------------------------------------------\n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
         msg['Subject'] = mailInfo['subject']
         msg['From'] = me
         msg['To'] = email
@@ -889,100 +888,114 @@ def getGroups():
     print(courseType)
     print(stage)
     groups = collection = mongo.db.balletCourse.find({"name": courseType, "stage": stage}).distinct("groups")
-    
-    pipeLine1 = [
-        { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage }, 
-                                  {"duration" : { "$in": ["1","3"]} }]}}, 
-        { "$group": {  "_id": {"group": "$group", "week": "1"}, "count": {"$sum":1} }  }  
-    ]
-    week1 = mongo.db.ballet.aggregate(pipeLine1)
-    print(pipeLine1)
-    pipeLine = [
-        { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage }, 
-                                  {"duration" : { "$in": ["2","3"]} }]}}, 
-        { "$group": {  "_id": {"group": "$group", "week": "2"}, "count": {"$sum":1} }  }  
-    ]
-    week2 = mongo.db.ballet.aggregate(pipeLine)
-    print(week1)
-    print(week2)
     jsonGroups = {}
     jsonGroupsArray= []
-    wk1List  = list(week1)
-    print(wk1List)
-    wk2List  = list(week2)
-    print(wk2List)
-    print(len(wk1List))
-    print(len(wk2List))
-    
-    # if len(wk1List) == 0:
-    try:
+    if stage != 'Alicante Winter Intensive 2017':
+        
+        pipeLine1 = [
+            { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage }, 
+                                    {"duration" : { "$in": ["1","3"]} }]}}, 
+            { "$group": {  "_id": {"group": "$group", "week": "1"}, "count": {"$sum":1} }  }  
+        ]
+        week1 = mongo.db.ballet.aggregate(pipeLine1)
+        print(pipeLine1)
+        pipeLine = [
+            { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage }, 
+                                    {"duration" : { "$in": ["2","3"]} }]}}, 
+            { "$group": {  "_id": {"group": "$group", "week": "2"}, "count": {"$sum":1} }  }  
+        ]
+        week2 = mongo.db.ballet.aggregate(pipeLine)
+        print(week1)
+        print(week2)
+        
+        wk1List  = list(week1)
+        print(wk1List)
+        wk2List  = list(week2)
+        print(wk2List)
+        print(len(wk1List))
+        print(len(wk2List))
+        
+        # if len(wk1List) == 0:
+        try:
+            for group in groups:
+                # jsonGroups = { "group" : group, "lst": [{"week": "1", "people": 0 }, {"week": "2", "people": 0 },{"week": "3", "people": 0 }] }
+                jsonGroups = { "group" : group, "lst": []}
+                jsonGroupsArray.append(jsonGroups)
+        except StopAsyncIteration:
+            print("Empty cursor")
+
+        for grp in jsonGroupsArray:
+            print(grp)
+            
+            group1Find = False
+            group2Find = False
+            for wk1 in wk1List:
+                print("wk1")
+                if wk1['_id']['group'] == grp['group']:
+                    grp['lst'].append({"week": wk1['_id']["week"], "people": wk1['count']})
+                    group1Find = True
+                    print("week: " + wk1['_id']["week"])
+                    print(group + ":" + str(wk1['count']))
+                    break
+                # jsonGroupsArray.append(jsonGroups)
+            for wk2 in wk2List:        
+                print("wk2")
+                print(grp['group'])
+                if wk2['_id']['group'] == grp['group']:
+                    grp['lst'].append({"week": wk2['_id']["week"], "people": wk2['count']})
+                    grp['lst'].append({"week": "3", "people": wk2['count']})
+                    group2Find = True
+                    print("week: " + wk2['_id']["week"])
+                    print(group + ":" + str(wk2['count']))
+                    print(grp['lst'])
+                    break
+            
+            if group1Find == False:
+                    grp['lst'].append({"week": "1", "people": 0})
+
+            if group2Find == False:
+                    grp['lst'].append({"week": "2", "people": 0})
+                    grp['lst'].append({"week": "3", "people": 0})   
+            
+            grp['lst'].sort(key=operator.itemgetter("week"))
+
+
+        jsonGroupsArray.sort(key=operator.itemgetter("group"))
+        print(jsonGroupsArray)
+        jsonGroupsArray.append({"groups": groups})
+        return json.dumps(jsonGroupsArray, default=json_util.default)
+    else:
+        jsonGroupsArray.append({ "group" : "WITHOUT GROUP", "lst": []})
         for group in groups:
-            # jsonGroups = { "group" : group, "lst": [{"week": "1", "people": 0 }, {"week": "2", "people": 0 },{"week": "3", "people": 0 }] }
             jsonGroups = { "group" : group, "lst": []}
             jsonGroupsArray.append(jsonGroups)
-    except StopAsyncIteration:
-        print("Empty cursor")
-    # else:
-    # try:
-    #     # for wk1 in wk1List:
-    #     #     jsonGroups = { "group" : wk1['_id']['group'], "lst": [{"week": wk1['_id']["week"], "people": wk1['count'] }] }
-    #     #     jsonGroupsArray.append(jsonGroups)
-    # except StopAsyncIteration:
-    #     print("Empty cursor")
-
-
-    # if len(wk2List) == 0:
-    # try:
-    #     for group in groups:
-    #         jsonGroups = { "group" : group, "lst": [{"week": "2", "people": 0 }] }
-    #         jsonGroupsArray.append(jsonGroups)
-    #         # jsonGroups = { "group" : group, "lst": [{"week": "3", "people": 0 }] }
-    #         # jsonGroupsArray.append(jsonGroups)
-    # except StopAsyncIteration:
-    #     print("Empty cursor")
-    # else:
-    for grp in jsonGroupsArray:
-        print(grp)
         
-        group1Find = False
-        group2Find = False
-        for wk1 in wk1List:
-            print("wk1")
-            if wk1['_id']['group'] == grp['group']:
-                grp['lst'].append({"week": wk1['_id']["week"], "people": wk1['count']})
-                group1Find = True
-                print("week: " + wk1['_id']["week"])
-                print(group + ":" + str(wk1['count']))
-                break
-            # jsonGroupsArray.append(jsonGroups)
-        for wk2 in wk2List:        
-            print("wk2")
+        pipeLine = [
+            {"$match": {"stage": "Alicante Winter Intensive 2017"}}, 
+            { "$group": { "_id": "$group", "count": {"$sum":1}}}  
+        ]
+        groups_week = mongo.db.ballet.aggregate(pipeLine)
+        groups_weekList  = list(groups_week)
+
+        
+        for grp in jsonGroupsArray:
             print(grp['group'])
-            if wk2['_id']['group'] == grp['group']:
-                grp['lst'].append({"week": wk2['_id']["week"], "people": wk2['count']})
-                grp['lst'].append({"week": "3", "people": wk2['count']})
-                group2Find = True
-                print("week: " + wk2['_id']["week"])
-                print(group + ":" + str(wk2['count']))
-                print(grp['lst'])
-                break
-        
-        if group1Find == False:
-                grp['lst'].append({"week": "1", "people": 0})
+            print('XXXXXXXXXX')
+            groupFound = False
+            for group in groups_weekList:
+                print(group['_id'])
+                if grp['group'] == group['_id']:
+                    grp['lst'].append({"week": 1, "people": group['count']})
+                    groupFound = True
+                    
+            if groupFound == False:
+                grp['lst'].append({"week": 1, "people": 0})
+            grp['lst'].sort(key=operator.itemgetter("week"))
+        jsonGroupsArray.sort(key=operator.itemgetter("group"))
+        print(jsonGroupsArray)
+        jsonGroupsArray.append({"groups": groups})
 
-        if group2Find == False:
-                grp['lst'].append({"week": "2", "people": 0})
-                grp['lst'].append({"week": "3", "people": 0})   
-        
-        grp['lst'].sort(key=operator.itemgetter("week"))
-
-
-    jsonGroupsArray.sort(key=operator.itemgetter("group"))
-    print(jsonGroupsArray)
-    jsonGroupsArray.append({"groups": groups})
-    return json.dumps(jsonGroupsArray, default=json_util.default)
-
-
+        return json.dumps(jsonGroupsArray, default=json_util.default)
 
 @app.route('/auth_signin', methods=['POST'])
 @cross_origin()
@@ -1071,19 +1084,18 @@ def exportExcel():
 
         # write header
         w.writerow((
-                    'Course', 'Group', 'Firstname', 
-                    'Name', 'Age', 'Birthday', 'XP', 
-                    'Duration', 'Email', 'phone', 'Country', 
-                    'Residence', 'DNI', 'BECA',
-                    'Audition', 'Studied places', 'intolerance', 'notes',
-                    'father'  
+                    'Course', 'Grupo', 'Nombre', 
+                    'Apellido', 'Fecha',  'DNI',
+                     'Duration', 'Contrato', 'Ciudad', 
+                    'Telefono', 'Telefono 2', 'E-mail' ,
+                    'E-mail 2', 'Padres', 'Escuela', 'notas'
                    ))
         yield data.getvalue()
         data.seek(0)
         data.truncate(0)
 
 
-        students = mongo.db.ballet.find({"stage": stage})
+        students = mongo.db.ballet.find({"stage": stage}).sort( "group", 1).sort("course_type", 1)
        
         try:
             for student in students:
@@ -1093,16 +1105,16 @@ def exportExcel():
                 nom      = profile[1]['nom']
                 phone    = profile[2]['phone']
                 email    = profile[3]['email']
-                country  = profile[5]['country']
+                city     = profile[6]['city']
                 birthday = profile[4]['birthdate']
                 studiedPlace = profile[7]['studied_places']
                 w.writerow((
                     student['course_type'], student['group'], prenom,
-                    nom, student['age'], birthday, student['years_of_experience'],
-                    student['duration'], email, phone, country,
-                    student['residence'], student['DNI'], student['BECA'], 
-                    student['audition'], studiedPlace, student['intolerencia'], student['notes'],
-                    student['father']
+                    nom, birthday, student['DNI'],
+                    student['duration'],'contrat', city,
+                    phone, student['phone2'], email,
+                    student['email2'], student['father'] ,studiedPlace, student['notes']
+                   
                 ))
                 yield data.getvalue()
                 data.seek(0)
