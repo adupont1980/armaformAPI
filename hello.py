@@ -1048,15 +1048,15 @@ def exportExcel():
                 birthday = profile[4]['birthdate']
                 studiedPlace = profile[7]['studied_places']
 
-                if student["contract"] == '':
-                    contract = 'no'
-                else:
-                    contract = 'si'
+                contract = 'no'
+                if "paid" in student:
+                     if student["paid"] == True
+                        contract = 'si'
 
                 w.writerow((
                     student['course_type'], student['group'], prenom,
                     nom, birthday, student['DNI'],
-                    student['duration'],contrat, city,
+                    student['duration'],contract, city,
                     phone, student['phone2'], email,
                     student['email2'], student['father'] ,studiedPlace, student['notes']
                    
