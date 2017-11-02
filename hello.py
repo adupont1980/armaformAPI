@@ -1033,8 +1033,11 @@ def exportExcel():
         data.seek(0)
         data.truncate(0)
 
+        if course == 'New Demands':
+            students = mongo.db.ballet.find({"stage": stage, "course_type": course}).sort( "group", 1).sort("course_type", 1)
+        else: 
+            students = mongo.db.ballet.find({"stage": stage, "course_type": course, "registred": True}).sort( "group", 1).sort("course_type", 1)
 
-        students = mongo.db.ballet.find({"stage": stage, "course_type": course}).sort( "group", 1).sort("course_type", 1)
        
         try:
             for student in students:
