@@ -1050,7 +1050,7 @@ def exportExcel():
 
                 contract = 'no'
                 if "paid" in student:
-                     if student["paid"] == True
+                     if student["paid"] == True:
                         contract = 'si'
 
                 w.writerow((
