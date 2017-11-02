@@ -1025,7 +1025,7 @@ def exportExcel():
         w.writerow((
                     'Course', 'Grupo', 'Nombre', 
                     'Apellido', 'Fecha',  'DNI',
-                     'Duration', 'Contrato', 'Ciudad', 
+                     'Duration', 'Contrato', 'Ciudad', 'pagado',
                     'Telefono', 'Telefono 2', 'E-mail' ,
                     'E-mail 2', 'Padres', 'Escuela', 'notas'
                    ))
@@ -1051,15 +1051,15 @@ def exportExcel():
                 birthday = profile[4]['birthdate']
                 studiedPlace = profile[7]['studied_places']
 
-                contract = 'no'
+                paid = 'no'
                 if "paid" in student:
                      if student["paid"] == True:
-                        contract = 'si'
+                        paid = 'si'
 
                 w.writerow((
                     student['course_type'], student['group'], prenom,
                     nom, birthday, student['DNI'],
-                    student['duration'],contract, city,
+                    student['duration'],'', city, paid,
                     phone, student['phone2'], email,
                     student['email2'], student['father'] ,studiedPlace, student['notes']
                    
