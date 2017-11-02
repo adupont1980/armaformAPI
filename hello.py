@@ -613,51 +613,15 @@ def get_datas():
                         
                     for i,val in enumerate(dicCol['field_panel_values']):
                         try:
-                            # print(val)
-                            # print("for field_panel_values: ")
-                            # print(i)
-                            # print(val['data'])
-                            # print('***************************************')
-                            # tmpFieldValue = ''
-                            #  value du champs field (ex value of profile.nom)
-                            # print(s[keyName][i][val])
-                            # print(val)
-                            # print(s[keyName][0][val])
-                            # if s[keyName][0][val] != '':
-                            #     print('ici')
-                        #     # print('169' + val)
-                        #     print(s[keyName][0][val])
+
                             cle = dicCol['field_panel_name'] + '_' + val['data']
-                            # print(cle)
-                            # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@ avant Val")
-                            # # print(s[dicCol['field_panel_name']])
-                            # print(val['data'])
-                           
-                            # # x = s[dicCol['field_panel_name']].index({'data': val['data']})
-                            # print('ddddddddddddddddddddddddddddd ' + x)
+
                             valeur = next((item for item in s[dicCol['field_panel_name']] if item.get(val['data'])), '')
                             if (valeur != ''):
                                 valeur = valeur[val['data']]
-                            # valeur = next((item for item in s[dicCol['field_panel_name']] if item.get(val['data'])), None)[val['data']]
-                            # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                            # print('--------------------------------------------')
-                            # print(dicCol)
-                            # print('+++++++++++++++++++++++++++++++++++++++++++++++')
-                            # # print(s[dicCol['field_panel_name']][i])
-                            # print(valeur)
+
                             record.update({cle:valeur})
-                            # listValuesFieldPanel.append({val['data']: s[dicCol['field_panel_name']][i][val['data']]})
-                            # tmpField.update({val['data']: s[dicCol['field_panel_name']][i][val['data']]})
-                           
-                            # print(listValuesFieldPanel[i])
-                            # newKeyName = keyName + '_' + val
-                            # tmpFieldValue = s[keyName][i][val]
-                            # if(tmpFieldValue != ''):
-                            #     # print(newKeyName)
-                            #     # print("tmpFieldValue "+  tmpFieldValue)
-                                
-                            #     record.update({newKeyName: tmpFieldValue})
-                        #     print(record)
+
                         except KeyError:
                             print('not defined')
                     # record.update({dicCol['field_panel_name']: listValuesFieldPanel})    
@@ -684,10 +648,6 @@ def get_datas():
                         
                 else:
                     #SI PAS FIELD PANEL ALORS COLONNE CLASIQUE TITLE + DATA
-                    # print('field_panel_name not in dic')
-                    # print(dicCol['data'])
-                    # print(dicCol['title'])
-                    # print(s[dicCol['data']])
                     record.update({dicCol['data']: s[dicCol['data']]})
                     record.update({'title': dicCol['title']})
             
@@ -915,10 +875,8 @@ def getGroups():
         print(len(wk1List))
         print(len(wk2List))
         
-        # if len(wk1List) == 0:
         try:
             for group in groups:
-                # jsonGroups = { "group" : group, "lst": [{"week": "1", "people": 0 }, {"week": "2", "people": 0 },{"week": "3", "people": 0 }] }
                 jsonGroups = { "group" : group, "lst": []}
                 jsonGroupsArray.append(jsonGroups)
         except StopAsyncIteration:
@@ -1006,8 +964,6 @@ def signin():
     # output = {}
     print(credentials)
     user = mongo.db.users.find_one({"email": credentials['email']})
-    print(user)
-    # print(user['password'])
     if (user != None):
         if (pbkdf2_sha256.verify(credentials['password'], user['password'])):
             encoded = jwt.encode({'user': user['email']}, 'secret', algorithm='HS256')
@@ -1051,31 +1007,14 @@ def updateStudent():
         }, upsert=False)
     return str(new_id)
 
-
-# example data, this could come from wherever you are storing logs
-log = [
-    ('login', datetime(2015, 1, 10, 5, 30)),
-    ('deposit', datetime(2015, 1, 10, 5, 35)),
-    ('order', datetime(2015, 1, 10, 5, 50)),
-    ('withdraw', datetime(2015, 1, 10, 6, 10)),
-    ('logout', datetime(2015, 1, 10, 6, 15))
-]
-
-
 @app.route('/export_excel', methods=['POST'])
 @cross_origin()
 def exportExcel():
 
     formValues = request.get_json()
     
-    print(formValues)
-    # print(request)
     stage = formValues['stage']
     course = formValues['course_type']
-    print(stage)
-    print(course)
-
-        
 
     def generate():
         print(course)
@@ -1108,10 +1047,16 @@ def exportExcel():
                 city     = profile[6]['city']
                 birthday = profile[4]['birthdate']
                 studiedPlace = profile[7]['studied_places']
+
+                if student["contract"] == '':
+                    contract = 'no'
+                else:
+                    contract = 'si'
+
                 w.writerow((
                     student['course_type'], student['group'], prenom,
                     nom, birthday, student['DNI'],
-                    student['duration'],'contrat', city,
+                    student['duration'],contrat, city,
                     phone, student['phone2'], email,
                     student['email2'], student['father'] ,studiedPlace, student['notes']
                    
