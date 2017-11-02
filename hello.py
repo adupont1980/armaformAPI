@@ -1034,7 +1034,7 @@ def exportExcel():
         data.truncate(0)
 
 
-        students = mongo.db.ballet.find({"stage": stage}).sort( "group", 1).sort("course_type", 1)
+        students = mongo.db.ballet.find({"stage": stage, "course_type": course}).sort( "group", 1).sort("course_type", 1)
        
         try:
             for student in students:
