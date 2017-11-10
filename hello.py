@@ -392,11 +392,21 @@ def get_steps():
     # print(m['save_button'])
         
     # master name: TO FIND WHICH STEPS WE NEED
-    # master type: WORKFLOW || FORM 
+    # master type: WORKFLOW || FORM || ADMIN 
 
     # if (pbkdf2_sha256.verify(credentials['password'], user['password'])):
 
     encodedToken = jwt.encode({'key_gen': master['key_gen']}, 'secret', algorithm='HS256')
+
+    if 'template' in master:
+        template = mongo.db.templates.find_one({"master": master['template']})
+        design_page = {
+            "back_btn" : template['back_btn'],
+            "background_color" : template['background_color'],
+            "list_btn" : template['list_btn'],
+            "panel_heading" : template['panel_heading']
+        }
+
 
     Steps = mongo.db.steps.find({"master": appName}).sort("step_id",1)
     # .sort("step_id",1)  {$elemMatch:{$eq:"auto"}}}, {"_id":0})
@@ -404,6 +414,13 @@ def get_steps():
     if "logo_url" in master:
         logoUrl = master['logo_url'] 
     
+    output.append({
+        "default_language": master['default_language'],
+        "languages": master['languages'],
+        "template": master['template'],
+        "logo_url": logoUrl,
+        "design" : design_page 
+    })
 
     for step in Steps:
         print(step['step_id'])
