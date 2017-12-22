@@ -21,7 +21,8 @@ import operator
 from email.mime.text import MIMEText
 import smtplib
 import csv
-
+from functools import wraps
+# from flask.api import status
 from flask import after_this_request
 
 
@@ -248,8 +249,12 @@ def storeFile():
 def save_step():
     referer = request.headers.get('referer')
     print(referer)
+    print(request.get_json(force=True))
 
+    print('headers\n')
+    print(request.headers.get('request'))
     data = request.get_json(force=True)
+    print(data)
     fileNameList = []
     objToSave = {}
     safeOrigin = False
@@ -261,6 +266,8 @@ def save_step():
         # A MODIFIER QUAND J'AURAI CREE TOKEN
         if 'app_name' in obj:
             if obj['app_name'] == 'ballet':
+                safeOrigin = True
+            if obj['app_name'] == 'auto':
                 safeOrigin = True
         
         if 'token' in obj:
@@ -282,6 +289,9 @@ def save_step():
             print("SAFE ORIGIN: ")
             print(safeOrigin)    
         else:
+            
+# ETAT TRANSACTION: 1= NEW; 2=OFFRE EN COURS; 3=ACHETE; 4 = VENDU
+
             # if 'file_uploaded' in obj:
             #     fileNameList.append({"name": obj['nom'], "details": [{"file_url": obj['file_url'] }]})
             #     print(obj['nom'])
@@ -297,6 +307,13 @@ def save_step():
                     "phone2":"", "email2": "", "registred":False})
                 if obj['app_name'] == 'play':
                     obj.update({ "paid": False, "registred":False})
+                if obj['app_name'] == 'auto':
+                    obj.update({
+                        "offre_rachat": 0,
+                        "achete": False,
+                        "prix_vente": 0,
+                        "etat_transaction": 1   
+                    })
             objToSave.update(obj)
         x = x + 1
 
@@ -307,8 +324,7 @@ def save_step():
     print(objToSave)    
     if safeOrigin:
         collection = 'mongo.db.'+collectionName+'.insert_one('+ str(objToSave) +')'
-        print(collection)
-            
+
         new_id = eval(collection)
         print(new_id.inserted_id)
         # docs_list  = list(cursor)
@@ -404,7 +420,8 @@ def get_steps():
             "back_btn" : template['back_btn'],
             "background_color" : template['background_color'],
             "list_btn" : template['list_btn'],
-            "panel_heading" : template['panel_heading']
+            "panel_heading" : template['panel_heading'],
+            "hover_btn" : template['hover_btn']
         }
 
 
@@ -414,12 +431,17 @@ def get_steps():
     if "logo_url" in master:
         logoUrl = master['logo_url'] 
     
+    menu_level = 0
+    if "menu_level" in master:
+        menu_level = master['menu_level']
+    
     output.append({
         "default_language": master['default_language'],
         "languages": master['languages'],
         "template": master['template'],
         "logo_url": logoUrl,
-        "design" : design_page 
+        "design" : design_page,
+        "menu_level": menu_level 
     })
 
     for step in Steps:
@@ -454,7 +476,7 @@ def get_steps():
 def get_details():
     objId = request.args['id']
     print(objId)
-    dataCollection = mongo.db.datas
+    dataCollection = mongo.db.auto
     details = dataCollection.find_one({"_id":ObjectId(objId)})
     # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
     # print(details['import'])
@@ -736,19 +758,74 @@ def getGrids():
     print("master")
     gridList = gridCollection.find({"activated": True, "master": data['master'] })
     output = []
-    try:
+    if data['master'] == 'ballet':
+        listCourse = []
         for grid in gridList:
-            print(grid['name'])
-            if "type" in grid:
-                output.append({  "name": grid['name'], "listBtn": grid['list'], "display": True })
+            if "type" in grid and grid['type'] == 'get_grids':
+                for infos in grid['list']:
+                    for children in infos['children']:
+                        res = dataCollection.count({"stage":infos['value'], "course_type":children})
+                        if res == 0:
+                            filters = gridCollection.find({"name": children},{"filtered": 1})
+                            clauses = {}
+                            for filtered in filters:
+                                for obj in filtered['filtered']:
+                                    if (obj['value_by'] != 'filterSelected'):
+                                        clauses.update({obj['by']:obj['value_by']})
+                                    else:
+                                        clauses.update({obj['by']:infos['value']})
+                                    
+                            if clauses == {}:
+                                nb = 0
+                            else:
+                                nb = dataCollection.count(clauses)
+                        else:
+                            nb = dataCollection.count({"stage":infos['value'], "course_type":children, "registred": True})
+                        listCourse.append({'name':infos['value'],'children': children, 'nbRecords': nb })
+                output.append({  "name": grid['name'], "listBtn":listCourse, "display": True })
             else: 
                 output.append({"name": grid['name'], "display": True})
+    else:
+        try:
+            for grid in gridList:
+                # if "type" in grid:
+                #     output.append({  "name": grid['name'], "listBtn": grid['list'], "display": True })
+                # else: 
+                output.append({"name": grid['name'], "display": True})
 
-    except StopAsyncIteration:
-        print("Empty cursor")
+        except StopAsyncIteration:
+            print("Empty cursor")
 
     return jsonify(output) 
 
+###############
+# LOG MAIL    #    
+###############
+@app.route('/log_mail', methods=['POST'])
+def log_email():
+    
+
+    data = request.get_json(force=True)
+
+    app.config['MAIL_SERVER']='smtp.live.com'
+    app.config['MAIL_PORT'] = 25
+    app.config['MAIL_USERNAME'] = 'anthony_dupont@hotmail.com'
+    app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
+
+    mail.init_app(app)    
+
+    html = "<div>ERROR IN APP " + str(data) +"</div>"          
+        
+    msg = Message( "ERROR LOG",
+    sender=('BALLET', "anthony_dupont@hotmail.com"),
+    html=html,
+    recipients=["anthony_dupont@hotmail.com"])       
+
+    mail.send(msg)
+
+    return ('OK')
 
 ############### 
 #  SEND EMAIL #
@@ -812,25 +889,39 @@ def send_email():
         msg['From'] = me
         msg['To'] = email
         sender = mailInfo['sender']
-
         session = smtplib.SMTP("smtp.1and1.com", 587)
         session.login(me, password)
         session.sendmail(me, email, msg.as_string())
         session.quit()
 
         # SEND NOTIFICATION TO ADMIN
-
         msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
         msg['Subject'] = "New registration received"
         msg['From'] = me
         msg['To'] = me
-
-
         session = smtplib.SMTP("smtp.1and1.com", 587)
         session.login(me, password)
         session.sendmail(me, me, msg.as_string())
         session.quit()
 
+        # SEND MESSAGE TO ADMIN WITH DATABACKUP
+        bckMessage = MIMEText(prenom + " " + nom + " has registred to the "+ course + 
+                " course for "+ stage +
+                "\n\n age:  " + formData['age'] +
+                "\n duration: "+ formData['duration'] +
+                "\n Residence: "+ formData['residence'] +
+                "\n Years of  experience: "+ formData['years_of_experience'] +
+                "\n email: "+ email )
+        
+        to = "anthony_dupont@hotmail.com"
+        bckMessage['Subject'] = "New registration received"
+        bckMessage['From'] = me
+        bckMessage['To'] = to
+        
+        session = smtplib.SMTP("smtp.1and1.com", 587)
+        session.login(me, password)
+        session.sendmail(me, to, bckMessage.as_string())
+        session.quit()
 
     return ('OK')
 
@@ -972,6 +1063,10 @@ def getGroups():
 
         return json.dumps(jsonGroupsArray, default=json_util.default)
 
+######################################
+# SIGN IN                            #
+######################################
+
 @app.route('/auth_signin', methods=['POST'])
 @cross_origin()
 def signin():
@@ -980,10 +1075,14 @@ def signin():
     # user.update({ "date_creation" : datetime.now()})
     # output = {}
     print(credentials)
-    user = mongo.db.users.find_one({"email": credentials['email']})
+    user = mongo.db.users.find_one({"email": credentials['email'], "master": credentials['app']})
     if (user != None):
         if (pbkdf2_sha256.verify(credentials['password'], user['password'])):
-            encoded = jwt.encode({'user': user['email']}, 'secret', algorithm='HS256')
+            message = {
+                'user': user['email'],
+                'exp': 1485972805
+            }
+            encoded = jwt.encode(message, 'secret', algorithm='HS256')
             print(encoded)
             output = {"logged": True, "message": "User connected", "token": encoded, "user_id": user['_id'] }
         else:
@@ -1003,26 +1102,35 @@ def signin():
 @cross_origin()
 def updateStudent():
     formValues = request.get_json()
+    print('avant check')
+    if checkAuthentication(formValues['token']):
+        print('check is true')
+        # print(formValues['_id'])
+        studentId = formValues['_id']
+        # print(studentId['$oid'])
+        print(formValues)
+        new_id = mongo.db.ballet.update(
+            {'_id': ObjectId(studentId['$oid']) }, 
+            { '$set':
+                { 
+                    'DNI': formValues['DNI'],
+                    'father': formValues['father'],
+                    'BECA': formValues['BECA'],
+                    'intolerencia': formValues['intolerencia'],
+                    'email2': formValues['email2'],
+                    'phone2': formValues['phone2'],
+                    'notes': formValues['notes'],
+                    'audition': formValues['audition']
+                }
+            }, upsert=False)
+        return json.dumps({'message': 'User updated'}, default=json_util.default)
+    else:
+        return  json.dumps({'message': 'error Auth'}, default=json_util.default)
+        
     
-    # print(formValues)
-    # print(formValues['_id'])
-    studentId = formValues['_id']
-    # print(studentId['$oid'])
-    print(formValues)
-    new_id = mongo.db.ballet.update(
-        {'_id': ObjectId(studentId['$oid']) }, 
-        { '$set':
-            { 
-                'DNI': formValues['DNI'],
-                'father': formValues['father'],
-                'BECA': formValues['BECA'],
-                'intolerencia': formValues['intolerencia'],
-                'email2': formValues['email2'],
-                'phone2': formValues['phone2'],
-                'notes': formValues['notes']
-            }
-        }, upsert=False)
-    return str(new_id)
+##########################################
+# EXPORT DATA TO EXCEL (BALLET APP)      #
+##########################################
 
 @app.route('/export_excel', methods=['POST'])
 @cross_origin()
@@ -1097,6 +1205,100 @@ def exportExcel():
         mimetype='text/csv', headers=headers
     )
 
+def checkAuthentication(token):
+    try:
+        print(token)
+        if token != None:
+            print('token valid')
+            payload = jwt.decode(token, 'secret', algorithm='HS256')
+            print(payload)
+            print('dDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD')
+            result = True
+        else:
+            print('token invalid')
+            result = False
+        return result
+    except (jwt.DecodeError, jwt.ExpiredSignatureError):
+        return json.dumps({'message': 'Token is invalid'}, default=json_util.default)
+
+
+@app.route('/make_offer', methods=['POST'])
+@cross_origin()
+def makeOffer():
+    
+    formValues = request.get_json()
+    token = formValues['token']
+    print(formValues['token'])
+    _id = formValues['_id']
+    if checkAuthentication(formValues['token']):
+        carId =  formValues['_id']
+        new_id = mongo.db.auto.update(
+            {'_id': ObjectId(carId['$oid']) }, 
+            { '$set':
+                { 
+                    'offre_rachat': formValues['offre_rachat'],
+                    'etat_transaction': 2
+                }
+            }, upsert=False)
+        
+        # new_id = eval(query)
+        print('token Valid')
+        return jsonify({"etat": 2,"title": "Offre en cours", "message": "Offre rachat enregistrée" }) 
+    else: 
+        print('token invalid')
+        return jsonify({"title": "Erreur", "message": "Veuillez-vous connecter pour mettre à jour ce champs"})
+
+
+
+
+@app.route('/save_buying_price', methods=['POST'])
+@cross_origin()
+def buyingPrice():
+    formValues = request.get_json()
+    token = formValues['token']
+    print(formValues['token'])
+    _id = formValues['_id']
+    if checkAuthentication(formValues['token']):
+        carId =  formValues['_id']
+        new_id = mongo.db.auto.update(
+            {'_id': ObjectId(carId['$oid']) }, 
+            { '$set':
+                { 
+                    'prix_achat': formValues['price'],
+                    'etat_transaction': 3
+                }
+            }, upsert=False)
+        
+        # new_id = eval(query)
+        print('token Valid')
+        return jsonify({"etat": 3, "title": "Acheté", "message": "Achat véhicule enregistré" }) 
+    else: 
+        print('token invalid')
+        return jsonify({"title": "Erreur", "message": "Veuillez-vous connecter pour mettre à jour ce champs"})
+
+@app.route('/save_selling_price', methods=['POST'])
+@cross_origin()
+def sellingPrice():
+    formValues = request.get_json()
+    token = formValues['token']
+    _id = formValues['_id']
+    if checkAuthentication(formValues['token']):
+        carId =  formValues['_id']
+        new_id = mongo.db.auto.update(
+            {'_id': ObjectId(carId['$oid']) }, 
+            { '$set':
+                { 
+                    'prix_vente': formValues['price'],
+                    'etat_transaction': 4
+                }
+            }, upsert=False)
+        
+        # new_id = eval(query)
+        print('token Valid')
+        return jsonify({"etat": 4, "title": "Vendu", "message": "Vente véhicule enregistré" }) 
+    else: 
+        print('token invalid')
+        return jsonify({"title": "Erreur", "message": "Veuillez-vous connecter pour mettre à jour ce champs"})
 
 
 if __name__ == "__main__":
