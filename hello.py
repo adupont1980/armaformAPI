@@ -756,7 +756,9 @@ def getGrids():
     gridCollection = mongo.db.grids
     print(data)
     print("master")
+    
     gridList = gridCollection.find({"activated": True, "master": data['master'] })
+    dataCollection = eval('mongo.db.'+data['master'])
     output = []
     if data['master'] == 'ballet':
         listCourse = []
