@@ -167,7 +167,7 @@ def get_data():
                 output.append(i)
 
             output.append(maxDate)
-
+            print(output)
             return jsonify(output)
 
         else:
@@ -1142,6 +1142,9 @@ def exportExcel():
     
     stage = formValues['stage']
     course = formValues['course_type']
+
+    print(stage)
+    print(course)
 
     def generate():
         print(course)
