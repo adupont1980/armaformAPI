@@ -819,14 +819,12 @@ def log_email():
     mail.init_app(app)    
 
     html = "<div>ERROR IN APP " + str(data) +"</div>"          
-        
     msg = Message( "ERROR LOG",
     sender=('BALLET', "anthony_dupont@hotmail.com"),
     html=html,
     recipients=["anthony_dupont@hotmail.com"])       
 
     mail.send(msg)
-
     return ('OK')
 
 ############### 
@@ -863,16 +861,20 @@ def send_email():
         prenom  = profile[0]['firstname']
         email   = profile[3]['email']
         sender  = mailInfo['sender']
-        print()
+
         # PREPARE CONFIRMATION MSG
         html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
         
-        msg = Message( mailInfo['subject'],
-        sender=('Armanaly', sender),
-        html=html,
-        recipients=[email])       
+        try:
+            msg = Message( mailInfo['subject'],
+            sender=('Armanaly', sender),
+            html=html,
+            recipients=[email])       
 
-        mail.send(msg)
+            mail.send(msg)
+        except expression as identifier:
+            print(Exception)
+            return str(Exception)
         
         # # PROD
         # app.config['MAIL_SERVER']='smtp.live.com'
