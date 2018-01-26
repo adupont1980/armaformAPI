@@ -872,7 +872,7 @@ def send_email():
             recipients=[email])       
 
             mail.send(msg)
-        except expression as identifier:
+        except Exception:
             print(Exception)
             return str(Exception)
         
