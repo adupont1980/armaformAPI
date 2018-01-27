@@ -872,9 +872,10 @@ def send_email():
             recipients=[email])       
 
             mail.send(msg)
-        except Exception:
-            print(Exception)
-            return str(Exception)
+        except Exception as err:
+            print(err)
+            print(err)print(err.args)
+            return str(err)
         
         # # PROD
         # app.config['MAIL_SERVER']='smtp.live.com'
