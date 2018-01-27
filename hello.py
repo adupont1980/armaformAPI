@@ -874,7 +874,7 @@ def send_email():
             mail.send(msg)
         except Exception as err:
             print(err)
-            print(err)print(err.args)
+            print(err.args)
             return str(err)
         
         # # PROD
