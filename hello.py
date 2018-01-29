@@ -862,13 +862,15 @@ def send_email():
 
     mail.init_app(app)
 
-    dataCollection = mongo.db.ballet
-    formData = dataCollection.find_one({"_id":ObjectId(formId)})
+    if appName == 'ballet':
     
-    profile = formData['profile']
-    nom     = profile[1]['nom']
-    prenom  = profile[0]['firstname']
-    email   = profile[3]['email']
+        dataCollection = mongo.db.ballet
+        formData = dataCollection.find_one({"_id":ObjectId(formId)})
+        profile = formData['profile']
+        nom     = profile[1]['nom']
+        prenom  = profile[0]['firstname']
+        email   = profile[3]['email']
+    
     sender  = mailInfo['sender']
 
     # PREPARE CONFIRMATION MSG
