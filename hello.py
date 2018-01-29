@@ -269,7 +269,8 @@ def save_step():
                 safeOrigin = True
             if obj['app_name'] == 'auto':
                 safeOrigin = True
-        
+            if obj['app_name'] == 'dynamickids':
+                safeOrigin = True
         if 'token' in obj:
             tokenFromApp = obj['token']
             collectionName = obj['app_name']
@@ -693,12 +694,20 @@ def get_datas():
             
             
             if 'details' in grid:
+                details = {}
                 if 'activated' in grid['details']:
-                    record.update({"details": {"activated": True}})
+                    details.update({"activated": grid['details']['activated'] })
                 else:
-                    record.update({"details": {"activated": False}})
+                    details.update({"activated": False })
+                if 'group' in grid['details']:
+                    details.update({"group": grid['details']['group'] })
+                else:
+                    details.update({"group": False })
+
+
+                record.update({"details": details})
             else:
-                record.update({"details": {"activated": False}})
+                record.update({"details": {"activated": False, "group":False}})
             
 
             if 'cargo_details' in grid:
@@ -1153,7 +1162,8 @@ def updateStudent():
                     'email2': formValues['email2'],
                     'phone2': formValues['phone2'],
                     'notes': formValues['notes'],
-                    'audition': formValues['audition']
+                    'audition': formValues['audition'],
+                    'duration': formValues['duration']
                 }
             }, upsert=False)
         return json.dumps({'message': 'User updated'}, default=json_util.default)
@@ -1173,9 +1183,6 @@ def exportExcel():
     
     stage = formValues['stage']
     course = formValues['course_type']
-
-    print(stage)
-    print(course)
 
     def generate():
         print(course)
