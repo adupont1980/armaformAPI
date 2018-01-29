@@ -852,39 +852,39 @@ def send_email():
     mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
 
 
-    if appName == 'ballet':
-        app.config['MAIL_SERVER']='smtp.live.com'
-        app.config['MAIL_PORT'] = 25
-        app.config['MAIL_USERNAME'] = 'armanaly@hotmail.com'
-        app.config['MAIL_PASSWORD'] = 'Goodbye2012'
-        app.config['MAIL_USE_TLS'] = True
-        app.config['MAIL_USE_SSL'] = False
-    
-        mail.init_app(app)
-    
-        dataCollection = mongo.db.ballet
-        formData = dataCollection.find_one({"_id":ObjectId(formId)})
-        
-        profile = formData['profile']
-        nom     = profile[1]['nom']
-        prenom  = profile[0]['firstname']
-        email   = profile[3]['email']
-        sender  = mailInfo['sender']
+    # if appName == 'ballet':
+    app.config['MAIL_SERVER']='smtp.live.com'
+    app.config['MAIL_PORT'] = 25
+    app.config['MAIL_USERNAME'] = 'armanaly@hotmail.com'
+    app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
 
-        # PREPARE CONFIRMATION MSG
-        html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
-        
-        try:
-            msg = Message( mailInfo['subject'],
-            sender=('Armanaly', sender),
-            html=html,
-            recipients=[email])       
+    mail.init_app(app)
 
-            mail.send(msg)
-        except Exception as err:
-            print(err)
-            print(err.args)
-            return str(err)
+    dataCollection = mongo.db.ballet
+    formData = dataCollection.find_one({"_id":ObjectId(formId)})
+    
+    profile = formData['profile']
+    nom     = profile[1]['nom']
+    prenom  = profile[0]['firstname']
+    email   = profile[3]['email']
+    sender  = mailInfo['sender']
+
+    # PREPARE CONFIRMATION MSG
+    html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
+    
+    try:
+        msg = Message( mailInfo['subject'],
+        sender=('Armanaly', sender),
+        html=html,
+        recipients=[email])       
+
+        mail.send(msg)
+    except Exception as err:
+        print(err)
+        print(err.args)
+        return str(err)
         
         # # PROD
         # app.config['MAIL_SERVER']='smtp.live.com'
