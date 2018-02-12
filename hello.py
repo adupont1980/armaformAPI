@@ -269,7 +269,7 @@ def save_step():
                 safeOrigin = True
             if obj['app_name'] == 'auto':
                 safeOrigin = True
-            if obj['app_name'] == 'dynamickids':
+            if obj['app_name'] == 'modele':
                 safeOrigin = True
         if 'token' in obj:
             tokenFromApp = obj['token']
@@ -1185,55 +1185,92 @@ def exportExcel():
     
     stage = formValues['stage']
     course = formValues['course_type']
+    
+    export_id = formValues['export_id']
+    print(stage)
 
     def generate():
         print(course)
         data = io.StringIO()
         w = csv.writer(data)
 
-        # write header
-        w.writerow((
+
+
+        if export_id > 0:
+            configExport = mongo.db.exports_templates.find({"export_id": export_id})
+            colTitle = []
+            for cols in configExport[0]['cols']:
+                colTitle.append(cols['title'])
+            w.writerow(( colTitle ))
+
+            clause = {}
+            for filterValue in configExport[0]['filtered']:
+                print(filterValue)
+                clause.update({filterValue['by']: filterValue['value_by']})
+            
+            students = mongo.db.ballet.find(clause)
+        else:
+             # write header
+            w.writerow((
                     'Course', 'Grupo', 'Nombre', 
                     'Apellido', 'Fecha',  'DNI',
                      'Duration', 'Contrato', 'Ciudad', 'pagado',
                     'Telefono', 'Telefono 2', 'E-mail' ,
                     'E-mail 2', 'Padres', 'Escuela', 'notas'
                    ))
+        
+            if course == 'New demands':
+                students = mongo.db.ballet.find({"stage": stage, "course_type": course}).sort( "group", 1).sort("course_type", 1)
+            else: 
+                students = mongo.db.ballet.find({"stage": stage, "course_type": course, "registred": True}).sort( "group", 1).sort("course_type", 1)
+
         yield data.getvalue()
         data.seek(0)
         data.truncate(0)
 
-        if course == 'New Demands':
-            students = mongo.db.ballet.find({"stage": stage, "course_type": course}).sort( "group", 1).sort("course_type", 1)
-        else: 
-            students = mongo.db.ballet.find({"stage": stage, "course_type": course, "registred": True}).sort( "group", 1).sort("course_type", 1)
-
-       
         try:
             for student in students:
-                
-                profile  = student['profile']
-                prenom   = profile[0]['firstname']
-                nom      = profile[1]['nom']
-                phone    = profile[2]['phone']
-                email    = profile[3]['email']
-                city     = profile[6]['city']
-                birthday = profile[4]['birthdate']
-                studiedPlace = profile[7]['studied_places']
+                if export_id > 0:
+                    values = []
+                    for colsValue in configExport[0]['cols']:
+                        # print(colsValue['data'])
+                        tmpColVal = colsValue['data']
+                        # print("tmpColVal: " + tmpColVal)
+                        if 'ori' in colsValue:
+                            ori = student[colsValue['ori']]
+                            for i, val in enumerate(ori):
+                                if tmpColVal in val:
+                                    values.append(ori[i][tmpColVal])
+                                    break
+                        else:
+                            values.append(student[tmpColVal])
+                            # print(student[tmpColVal])
+                    w.writerow((values))
+                    
+                        
+                else:
+                    profile  = student['profile']
+                    prenom   = profile[0]['firstname']
+                    nom      = profile[1]['nom']
+                    phone    = profile[2]['phone']
+                    email    = profile[3]['email']
+                    city     = profile[6]['city']
+                    birthday = profile[4]['birthdate']
+                    studiedPlace = profile[7]['studied_places']
 
-                paid = 'no'
-                if "paid" in student:
-                     if student["paid"] == True:
-                        paid = 'si'
+                    paid = 'no'
+                    if "paid" in student:
+                        if student["paid"] == True:
+                            paid = 'si'
 
-                w.writerow((
-                    student['course_type'], student['group'], prenom,
-                    nom, birthday, student['DNI'],
-                    student['duration'],'', city, paid,
-                    phone, student['phone2'], email,
-                    student['email2'], student['father'] ,studiedPlace, student['notes']
-                   
-                ))
+                    w.writerow((
+                        student['course_type'], student['group'], prenom,
+                        nom, birthday, student['DNI'],
+                        student['duration'],'', city, paid,
+                        phone, student['phone2'], email,
+                        student['email2'], student['father'] ,studiedPlace, student['notes']
+                    
+                    ))
                 yield data.getvalue()
                 data.seek(0)
                 data.truncate(0)
