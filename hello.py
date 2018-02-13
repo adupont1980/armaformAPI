@@ -599,24 +599,18 @@ def get_datas():
             print(sortBy)
         
         
-        print(datas)
-        # data = dataCollection.find({filterBy:valueBy})
-
-        
-        # try:
-        #     record = cols.next()
-        # except StopIteration:
-        #     print("No columns  in the cursor grid!")
-        # print(record)
-        # for col in cols:
-        #     print(col['cols'])
         output = []
-        
+        config = {}
         if "details" in grid:
-            output.append({'config': grid['cols']})
+            config.update({'config': grid['cols']})
+            # output.append({'config': grid['cols']})
         else:
-            output.append({'config': grid['cols']})
-        print('startDataCollections')
+            config.update({'config': grid['cols']})
+
+        if 'export' in grid['details']:
+            config.update({"details": {"export": True, "export_id":grid['details']['export_id']}})
+        output.append(config)
+
         course_list = []
         # Pour chaque élement de la collection data
         for s in datas:
