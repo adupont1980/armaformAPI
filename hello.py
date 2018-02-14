@@ -183,7 +183,7 @@ def get_data():
 
             docs_list  = list(cursor)
 
-            docs_list.sort()
+            # docs_list.sort()
             print(docs_list)
             return json.dumps(docs_list, default=json_util.default)
             
