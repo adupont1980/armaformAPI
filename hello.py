@@ -422,7 +422,8 @@ def get_steps():
             "background_color" : template['background_color'],
             "list_btn" : template['list_btn'],
             "panel_heading" : template['panel_heading'],
-            "hover_btn" : template['hover_btn']
+            "hover_btn" : template['hover_btn'],
+            "grid_btn" : template['grid_btn']
         }
 
 
