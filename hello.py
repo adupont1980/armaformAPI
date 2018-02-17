@@ -1166,7 +1166,7 @@ def updateStudent():
                     'registred': formValues['registred'],
                     'profile.5.country': formValues['country'],
                     'profile.6.city': formValues['city'],
-                    'profile.4.birthdate': formValues['birthdate'],
+                    'profile.4.birthdate': formValues['birthday'],
                     'profile.3.email': formValues['email'],
                     'profile.2.phone': formValues['phone']
                     # 'profile.country': formValues['country'],
