@@ -1164,7 +1164,7 @@ def updateStudent():
                     'age' : formValues['age'],
                     'course_type' : formValues['course_type'],
                     'registred': formValues['registred'],
-                    'profile.country': formValues['country']
+                    'profile['country']: formValues['country']
                     # 'profile.country': formValues['country'],
                     # 'city'
                 }
