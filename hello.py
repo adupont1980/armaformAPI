@@ -1168,9 +1168,9 @@ def updateStudent():
                     'profile.6.city': formValues['city'],
                     'profile.4.birthdate': formValues['birthday'],
                     'profile.3.email': formValues['email'],
-                    'profile.2.phone': formValues['phone']
-                    # 'profile.country': formValues['country'],
-                    # 'city'
+                    'profile.2.phone': formValues['phone'],
+                    'profile.7.studied_places': formValues['studied_places'],
+                    'years_of_experience' : formValues['years_of_experience']
                 }
             }, upsert=False)
         return json.dumps({'message': 'User updated'}, default=json_util.default)
