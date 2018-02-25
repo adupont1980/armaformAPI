@@ -887,10 +887,10 @@ def send_email():
         confirmMsg['To'] = email
 
         
-        # session = smtplib.SMTP("smtp.live.com", 25)
-        # session.login(me, password)
-        # session.sendmail(me, me, confirmMsg.as_string())
-        # session.quit()
+        session = smtplib.SMTP("smtp.live.com", 25)
+        session.login(me, password)
+        session.sendmail(me, me, confirmMsg.as_string())
+        session.quit()
 
 
         # mail.send(msg)
@@ -928,7 +928,7 @@ def send_email():
 
         session = smtplib.SMTP("smtp.1and1.com", 587)
         session.login(me, password)
-        session.sendmail(me, "anthony_dupont@hotmail.com", msg.as_string())
+        session.sendmail(me, "anthony_dupont@hotmail.com", bckMessage.as_string())
         session.quit()
         # mail.send(bckMessage)
 
