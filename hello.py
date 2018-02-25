@@ -908,7 +908,7 @@ def send_email():
         session.login(me, password)
         session.sendmail(me, me, msg.as_string())
         session.quit()
-        mail.send(msg)
+        # mail.send(msg)
       
 
         # # SEND MESSAGE TO ADMIN WITH DATABACKUP
@@ -925,7 +925,12 @@ def send_email():
         bckMessage['Subject'] = "New registration received"
         bckMessage['From'] = me
         bckMessage['To'] = "anthony_dupont@hotmail.com"
-        mail.send(bckMessage)
+
+        session = smtplib.SMTP("smtp.1and1.com", 587)
+        session.login(me, password)
+        session.sendmail(me, "anthony_dupont@hotmail.com", msg.as_string())
+        session.quit()
+        # mail.send(bckMessage)
 
 
         # session = smtplib.SMTP("smtp.1and1.com", 587)
