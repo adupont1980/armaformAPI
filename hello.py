@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from flask import Flask, request, Response, jsonify, make_response, stream_with_context
+from flask import Flask, request, Response, jsonify, make_response, after_this_request, stream_with_context
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
 import pymongo
@@ -22,24 +22,14 @@ from email.mime.text import MIMEText
 import smtplib
 import csv
 from functools import wraps
-# from flask.api import status
-from flask import after_this_request
-
-
 import io
 import mimetypes
 from werkzeug.datastructures import Headers
-
-
-
 
 app = Flask(__name__)
 mail = Mail()
 CORS(app)
 MONGO_URL = os.environ.get('MONGO_URL')
-
-
-# app.register_blueprint(auth)
 
 #DEV PURPOSE
 if not MONGO_URL:
@@ -68,13 +58,6 @@ cloudinary.config(
 # mongo = PyMongo(app, config_prefix='MONGO')
 # APP_URL = "http://127.0.0.1:5000"
 
-
-
-# def newEncoder(o):
-#     if type(o) == ObjectId:
-#         return str(o)
-#     return o.__str__
-
 def is_number(s):
     try:
         float(s)
@@ -100,16 +83,7 @@ def index():
 @app.route('/getFormData', methods=['GET'])
 def get_form_data():
     idRecord = request.args['_id']
-    # collection = request.args['collName']
-
-    # filtersName = request.args['filters_name'].split(',')
-    # filtersValue = request.args['filters_value'].split(',')
-    # print(collection)
-    # print(filtersName)
-    # print(filtersValue)
-    print(idRecord)
     result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
-    # print(result)
     
     return json.dumps(result, default=json_util.default)
 
@@ -336,10 +310,6 @@ def save_step():
     else:
         return str('NO_NO_NO')
 
-    # Response(
-    # json_util.dumps({'id': id},mimetype='application/json')
-    # ) 
-    # return json_dumps(new_id, default=newEncoder)
 
 ##################################
 # UPDATE CHECKBOX 
@@ -848,12 +818,12 @@ def send_email():
 
 
     # if appName == 'ballet':
-    app.config['MAIL_SERVER']='smtp.live.com'
-    app.config['MAIL_PORT'] = 25
-    app.config['MAIL_USERNAME'] = 'armanaly@hotmail.com'
-    app.config['MAIL_PASSWORD'] = 'Goodbye2012'
-    app.config['MAIL_USE_TLS'] = True
-    app.config['MAIL_USE_SSL'] = False
+    # app.config['MAIL_SERVER']='smtp.live.com'
+    # app.config['MAIL_PORT'] = 25
+    # app.config['MAIL_USERNAME'] = 'armanaly@hotmail.com'
+    # app.config['MAIL_PASSWORD'] = 'Goodbye2012'
+    # app.config['MAIL_USE_TLS'] = True
+    # app.config['MAIL_USE_SSL'] = False
 
     mail.init_app(app)
 
@@ -869,19 +839,19 @@ def send_email():
     sender  = mailInfo['sender']
 
     # PREPARE CONFIRMATION MSG
-    html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
+    # html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
     
-    try:
-        msg = Message( mailInfo['subject'],
-        sender=('Armanaly', sender),
-        html=html,
-        recipients=[email])       
+    # try:
+    #     msg = Message( mailInfo['subject'],
+    #     sender=('Armanaly', sender),
+    #     html=html,
+    #     recipients=[email])       
 
-        mail.send(msg)
-    except Exception as err:
-        print(err)
-        print(err.args)
-        return str(err)
+    #     mail.send(msg)
+    # except Exception as err:
+    #     print(err)
+    #     print(err.args)
+    #     return str(err)
         
         # # PROD
         # app.config['MAIL_SERVER']='smtp.live.com'
@@ -896,24 +866,24 @@ def send_email():
         # me = 'anthony_dupont@hotmail.com'
         # password = 'Goodbye2012'
         
-        # dataCollection = mongo.db.ballet
-        # formData = dataCollection.find_one({"_id":ObjectId(formId)})
-        # sender = mailInfo['sender']
+        dataCollection = mongo.db.ballet
+        formData = dataCollection.find_one({"_id":ObjectId(formId)})
+        sender = mailInfo['sender']
 
         # # GET INFO TO PUT IN TEMPLATE
-        # profile  = formData['profile']
-        # prenom   = profile[0]['firstname']
-        # nom      = profile[1]['nom']
-        # email    = profile[3]['email']
-        # stage    = formData['stage']
-        # course   = formData['course_type']
+        profile  = formData['profile']
+        prenom   = profile[0]['firstname']
+        nom      = profile[1]['nom']
+        email    = profile[3]['email']
+        stage    = formData['stage']
+        course   = formData['course_type']
 
         
 
-        # confirmMsg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n----------------------------------------------------------------------------------------\n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
-        # confirmMsg['Subject'] = mailInfo['subject']
-        # confirmMsg['From'] = me
-        # confirmMsg['To'] = email
+        confirmMsg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n----------------------------------------------------------------------------------------\n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
+        confirmMsg['Subject'] = mailInfo['subject']
+        confirmMsg['From'] = me
+        confirmMsg['To'] = email
 
         
         # session = smtplib.SMTP("smtp.live.com", 25)
@@ -931,30 +901,30 @@ def send_email():
         # session.quit()
 
         # SEND NOTIFICATION TO ADMIN
-        # msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
+        msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
 
-        # session = smtplib.SMTP("smtp.1and1.com", 587)
-        # session.login(me, password)
-        # session.sendmail(me, me, msg.as_string())
-        # session.quit()
-        # mail.send(msg)
+        session = smtplib.SMTP("smtp.1and1.com", 587)
+        session.login(me, password)
+        session.sendmail(me, me, msg.as_string())
+        session.quit()
+        mail.send(msg)
       
 
         # # SEND MESSAGE TO ADMIN WITH DATABACKUP
         
-        # bckMessage = MIMEText(prenom + " " + nom + " has registred to the "+ course + 
-        #         " course for "+ stage +
-        #         "\n\n age:  " + formData['age'] +
-        #         "\n duration: "+ formData['duration'] +
-        #         "\n Residence: "+ formData['residence'] +
-        #         "\n Years of  experience: "+ formData['years_of_experience'] +
-        #         "\n email: "+ email )
+        bckMessage = MIMEText(prenom + " " + nom + " has registred to the "+ course + 
+                " course for "+ stage +
+                "\n\n age:  " + formData['age'] +
+                "\n duration: "+ formData['duration'] +
+                "\n Residence: "+ formData['residence'] +
+                "\n Years of  experience: "+ formData['years_of_experience'] +
+                "\n email: "+ email )
         
       
-        # bckMessage['Subject'] = "New registration received"
-        # bckMessage['From'] = me
-        # bckMessage['To'] = to
-        # mail.send(bckMessage)
+        bckMessage['Subject'] = "New registration received"
+        bckMessage['From'] = me
+        bckMessage['To'] = to
+        mail.send(bckMessage)
 
 
         # session = smtplib.SMTP("smtp.1and1.com", 587)
