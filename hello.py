@@ -806,7 +806,8 @@ def log_email():
 ###############
 @app.route('/send_mail', methods=['POST'])
 def send_email():
-    
+    mail.init_app(app)
+
     data = request.get_json(force=True)
 
     mailId = data['mail_id']
@@ -814,8 +815,9 @@ def send_email():
     appName = data['app_name']
 
     mailCollection = mongo.db.mails
-    mailInfo = mailCollection.find_one({"mail_id": int(mailId)})
-
+    mailInfo = mailCollection.find_one({"mail_id": int(mailId)})    
+    
+    
 
     # if appName == 'ballet':
     # app.config['MAIL_SERVER']='smtp.live.com'
@@ -831,47 +833,7 @@ def send_email():
     
         dataCollection = mongo.db.ballet
         formData = dataCollection.find_one({"_id":ObjectId(formId)})
-        profile = formData['profile']
-        nom     = profile[1]['nom']
-        prenom  = profile[0]['firstname']
-        email   = profile[3]['email']
-    
-        sender  = mailInfo['sender']
-        me = 'info@russianmastersballet.com'
-        password = 'Rmbc2015'
-    # PREPARE CONFIRMATION MSG
-    # html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
-    
-    # try:
-    #     msg = Message( mailInfo['subject'],
-    #     sender=('Armanaly', sender),
-    #     html=html,
-    #     recipients=[email])       
-
-    #     mail.send(msg)
-    # except Exception as err:
-    #     print(err)
-    #     print(err.args)
-    #     return str(err)
-        
-        # # PROD
-        # app.config['MAIL_SERVER']='smtp.live.com'
-        # app.config['MAIL_PORT'] = 25
-        # app.config['MAIL_USERNAME'] = 'bde.play.2018@hotmail.com'
-        # app.config['MAIL_PASSWORD'] = 'bdeplay2018'
-        # app.config['MAIL_USE_TLS'] = True
-        # app.config['MAIL_USE_SSL'] = False
-        
-        # TEST
-
-        # me = 'anthony_dupont@hotmail.com'
-        # password = 'Goodbye2012'
-        
-        dataCollection = mongo.db.ballet
-        formData = dataCollection.find_one({"_id":ObjectId(formId)})
-        sender = mailInfo['sender']
-
-        # # GET INFO TO PUT IN TEMPLATE
+        # GET INFO TO PUT IN TEMPLATE
         profile  = formData['profile']
         prenom   = profile[0]['firstname']
         nom      = profile[1]['nom']
@@ -879,40 +841,33 @@ def send_email():
         stage    = formData['stage']
         course   = formData['course_type']
 
-        
+        me = 'info@russianmastersballet.com'
+        password = 'Rmbc2015'
 
-        confirmMsg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n----------------------------------------------------------------------------------------\n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
-        confirmMsg['Subject'] = mailInfo['subject']
-        confirmMsg['From'] = me
-        confirmMsg['To'] = email
+        msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n----------------------------------------------------------------------------------------\n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
+        msg['Subject'] = mailInfo['subject']
+        msg['From'] = me
+        msg['To'] = email
+        sender = mailInfo['sender']
 
-        
-        session = smtplib.SMTP("smtp.live.com", 587)
+        session = smtplib.SMTP("smtp.1and1.com", 587)
         session.login(me, password)
-        session.sendmail(me, me, confirmMsg.as_string())
+        session.sendmail(me, email, msg.as_string())
         session.quit()
 
-
-        # mail.send(msg)
-      
-      
-        # session = smtplib.SMTP("smtp.1and1.com", 587)
-        # session.login(me, password)
-        # session.sendmail(me, email, msg.as_string())
-        # session.quit()
-
         # SEND NOTIFICATION TO ADMIN
+
         msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
+        msg['Subject'] = "New registration received"
+        msg['From'] = me
+        msg['To'] = me
 
         session = smtplib.SMTP("smtp.1and1.com", 587)
         session.login(me, password)
         session.sendmail(me, me, msg.as_string())
         session.quit()
-        # mail.send(msg)
-      
 
-        # # SEND MESSAGE TO ADMIN WITH DATABACKUP
-        
+        # SEND MESSAGE TO ADMIN WITH DATABACKUP
         bckMessage = MIMEText(prenom + " " + nom + " has registred to the "+ course + 
                 " course for "+ stage +
                 "\n\n age:  " + formData['age'] +
@@ -921,16 +876,118 @@ def send_email():
                 "\n Years of  experience: "+ formData['years_of_experience'] +
                 "\n email: "+ email )
         
-      
+        to = "anthony_dupont@hotmail.com"
         bckMessage['Subject'] = "New registration received"
         bckMessage['From'] = me
-        bckMessage['To'] = "anthony_dupont@hotmail.com"
-
+        bckMessage['To'] = to
+        
         session = smtplib.SMTP("smtp.1and1.com", 587)
         session.login(me, password)
-        session.sendmail(me, "anthony_dupont@hotmail.com", bckMessage.as_string())
+        session.sendmail(me, to, bckMessage.as_string())
         session.quit()
-        # mail.send(bckMessage)
+
+    #     dataCollection = mongo.db.ballet
+    #     formData = dataCollection.find_one({"_id":ObjectId(formId)})
+    #     profile = formData['profile']
+    #     nom     = profile[1]['nom']
+    #     prenom  = profile[0]['firstname']
+    #     email   = profile[3]['email']
+    
+    #     sender  = mailInfo['sender']
+    #     me = 'info@russianmastersballet.com'
+    #     password = 'Rmbc2015'
+    # # PREPARE CONFIRMATION MSG
+    # # html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
+    
+    # # try:
+    # #     msg = Message( mailInfo['subject'],
+    # #     sender=('Armanaly', sender),
+    # #     html=html,
+    # #     recipients=[email])       
+
+    # #     mail.send(msg)
+    # # except Exception as err:
+    # #     print(err)
+    # #     print(err.args)
+    # #     return str(err)
+        
+    #     # # PROD
+    #     # app.config['MAIL_SERVER']='smtp.live.com'
+    #     # app.config['MAIL_PORT'] = 25
+    #     # app.config['MAIL_USERNAME'] = 'bde.play.2018@hotmail.com'
+    #     # app.config['MAIL_PASSWORD'] = 'bdeplay2018'
+    #     # app.config['MAIL_USE_TLS'] = True
+    #     # app.config['MAIL_USE_SSL'] = False
+        
+    #     # TEST
+
+    #     # me = 'anthony_dupont@hotmail.com'
+    #     # password = 'Goodbye2012'
+        
+    #     dataCollection = mongo.db.ballet
+    #     formData = dataCollection.find_one({"_id":ObjectId(formId)})
+    #     sender = mailInfo['sender']
+
+    #     # # GET INFO TO PUT IN TEMPLATE
+    #     profile  = formData['profile']
+    #     prenom   = profile[0]['firstname']
+    #     nom      = profile[1]['nom']
+    #     email    = profile[3]['email']
+    #     stage    = formData['stage']
+    #     course   = formData['course_type']
+
+        
+
+    #     confirmMsg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n----------------------------------------------------------------------------------------\n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
+    #     confirmMsg['Subject'] = mailInfo['subject']
+    #     confirmMsg['From'] = me
+    #     confirmMsg['To'] = email
+
+        
+    #     session = smtplib.SMTP("smtp.live.com", 587)
+    #     session.login(me, password)
+    #     session.sendmail(me, me, confirmMsg.as_string())
+    #     session.quit()
+
+
+    #     # mail.send(msg)
+      
+      
+    #     # session = smtplib.SMTP("smtp.1and1.com", 587)
+    #     # session.login(me, password)
+    #     # session.sendmail(me, email, msg.as_string())
+    #     # session.quit()
+
+    #     # SEND NOTIFICATION TO ADMIN
+    #     msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
+
+    #     session = smtplib.SMTP("smtp.1and1.com", 587)
+    #     session.login(me, password)
+    #     session.sendmail(me, me, msg.as_string())
+    #     session.quit()
+    #     # mail.send(msg)
+      
+
+    #     # # SEND MESSAGE TO ADMIN WITH DATABACKUP
+        
+    #     bckMessage = MIMEText(prenom + " " + nom + " has registred to the "+ course + 
+    #             " course for "+ stage +
+    #             "\n\n age:  " + formData['age'] +
+    #             "\n duration: "+ formData['duration'] +
+    #             "\n Residence: "+ formData['residence'] +
+    #             "\n Years of  experience: "+ formData['years_of_experience'] +
+    #             "\n email: "+ email )
+        
+      
+    #     bckMessage['Subject'] = "New registration received"
+    #     bckMessage['From'] = me
+    #     bckMessage['To'] = "anthony_dupont@hotmail.com"
+
+    #     session = smtplib.SMTP("smtp.1and1.com", 587)
+    #     session.login(me, password)
+    #     session.sendmail(me, "anthony_dupont@hotmail.com", bckMessage.as_string())
+    #     session.quit()
+    #     # mail.send(bckMessage)
 
 
         # session = smtplib.SMTP("smtp.1and1.com", 587)
