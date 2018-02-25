@@ -887,7 +887,7 @@ def send_email():
         confirmMsg['To'] = email
 
         
-        session = smtplib.SMTP("smtp.live.com", 25)
+        session = smtplib.SMTP("smtp.live.com", 587)
         session.login(me, password)
         session.sendmail(me, me, confirmMsg.as_string())
         session.quit()
