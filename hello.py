@@ -924,7 +924,7 @@ def send_email():
       
         bckMessage['Subject'] = "New registration received"
         bckMessage['From'] = me
-        bckMessage['To'] = 
+        bckMessage['To'] = "anthony_dupont@hotmail.com"
         mail.send(bckMessage)
 
 
