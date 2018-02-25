@@ -836,7 +836,7 @@ def send_email():
         prenom  = profile[0]['firstname']
         email   = profile[3]['email']
     
-    sender  = mailInfo['sender']
+        sender  = mailInfo['sender']
 
     # PREPARE CONFIRMATION MSG
     # html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
