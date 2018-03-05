@@ -580,6 +580,8 @@ def get_datas():
 
         if 'export' in grid['details']:
             config.update({"details": {"export": True, "export_id":grid['details']['export_id']}})
+        else:
+            config.update({"details": {"export": False, "export_id":0}})
         output.append(config)
 
         course_list = []
