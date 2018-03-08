@@ -571,7 +571,7 @@ def get_datas():
         
         
         output = []
-        config = {"details_activated": False, "group": False, "export": False, "export_id":0}}
+        config = {"details_activated": False, "group": False, "export": False, "export_id":0}
         if "details" in grid:
             config.update({'config': grid['cols']})
             # output.append({'config': grid['cols']})
