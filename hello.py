@@ -571,7 +571,7 @@ def get_datas():
         
         
         output = []
-        config = {}
+        config = {"details_activated": False, "group": False, "export": False, "export_id":0}}
         if "details" in grid:
             config.update({'config': grid['cols']})
             # output.append({'config': grid['cols']})
@@ -580,8 +580,18 @@ def get_datas():
 
         if 'export' in grid['details']:
             config.update({"details": {"export": True, "export_id":grid['details']['export_id']}})
-        else:
-            config.update({"details": {"export": False, "export_id":0}})
+        # else:
+        #     config.update({"details": {"export": False, "export_id":0}})
+        
+        if 'group' in grid['details']:
+            config.update({"group": grid['details']['group']})
+        # else:
+        #     config.update({"group": False})
+
+        if 'activated' in grid['details']: 
+            config.update({"details_activated": grid['details']['activated']})
+        
+            
         output.append(config)
 
         course_list = []
@@ -660,30 +670,30 @@ def get_datas():
             
             
             
-            if 'details' in grid:
-                details = {}
-                if 'activated' in grid['details']:
-                    details.update({"activated": grid['details']['activated'] })
-                else:
-                    details.update({"activated": False })
-                if 'group' in grid['details']:
-                    details.update({"group": grid['details']['group'] })
-                else:
-                    details.update({"group": False })
+            # if 'details' in grid:
+            #     details = {}
+            #     if 'activated' in grid['details']:
+            #         details.update({"activated": grid['details']['activated'] })
+            #     else:
+            #         details.update({"activated": False })
+            #     if 'group' in grid['details']:
+            #         details.update({"group": grid['details']['group'] })
+            #     else:
+            #         details.update({"group": False })
 
 
-                record.update({"details": details})
-            else:
-                record.update({"details": {"activated": False, "group":False}})
+            #     record.update({"details": details})
+            # else:
+            #     record.update({"details": {"activated": False, "group":False}})
             
 
             if 'cargo_details' in grid:
                 if 'activated' in grid['cargo_details']:
                     record.update({"cargo_details": {"activated": True}})
-                else:
-                    record.update({"cargo_details": {"activated": False}})
-            else:
-                record.update({"cargo_details": {"activated": False}})  
+            #     else:
+            #         record.update({"cargo_details": {"activated": False}})
+            # else:
+            #     record.update({"cargo_details": {"activated": False}})  
 
             # print(listValuesFieldPanel)
             output.append(record)
