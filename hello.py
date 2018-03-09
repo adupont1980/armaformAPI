@@ -532,7 +532,7 @@ def get_datas():
         else:
             dataCollection = mongo.db.datas
 
-        print( )
+        print(collectionName)
         
         # FILTERED
         if 'filtered' in grid:
@@ -565,11 +565,9 @@ def get_datas():
                 sortBy.append((by, order))
             # datas.sort([(sortBy,-1), ("duration", 1)])
             datas.sort(sortBy)
-            
        
             print(sortBy)
-        
-        
+
         output = []
         config = {"details_activated": False, "group": False, "export": False, "export_id":0}
         if "details" in grid:
@@ -592,7 +590,7 @@ def get_datas():
             config.update({"details_activated": grid['details']['activated']})
         
             
-        output.append(config)
+        output.append({"config" : config})
 
         course_list = []
         # Pour chaque élement de la collection data
@@ -600,14 +598,15 @@ def get_datas():
             # print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
             # print(s)
             # print(str(s["_id"]))
-            if "step_id" in s:
-                record = {"step_id": str(s["step_id"])}
-            else:
-                record = {}
+            record = {}
             record.update({"_id": str(s["_id"])})
+            
+            if "step_id" in s:
+                record.update({"step_id": str(s["step_id"])})
 
             if "id_rate" in s:
                 record.update({"id_rate": str(s["id_rate"])})
+
             # READ ADD COLS FROM DATA GRID CONFIG
             listValuesFieldPanel = []
             # pour chaque element defini dans la collection grid
