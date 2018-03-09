@@ -714,13 +714,13 @@ def get_datas():
 
     except (ValueError):
         print("Value Error")
-        return Response({"JSON Format Error."}, status=400, mimetype='application/json')
+        return Response({"JSON Format Error." + }, status=400, mimetype='application/json')
     except (KeyError):
         print(KeyError)
-        return Response({"JSON Format Error."}, status=400, mimetype='application/json')
+        return Response({"msg" : "JSON Format Error." , " KeyError": KeyError}, status=400, mimetype='application/json')
     except (TypeError):
         print(TypeError)
-        return Response({"JSON Format Error."}, status=400, mimetype='application/json')
+        return Response({"msg" : "JSON Format Error." , "TypeError": TypeError}, status=400, mimetype='application/json')
         # resp = Response({"JSON Format Error."}, status=400, mimetype='application/json')
         
 
