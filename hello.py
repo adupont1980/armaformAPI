@@ -33,8 +33,8 @@ MONGO_URL = os.environ.get('MONGO_URL')
 
 #DEV PURPOSE
 if not MONGO_URL:
-     MONGO_URL = "mongodb://localhost:27017/cargo_friend";
-    # MONGO_URL = "mongodb://localhost:27017/auto";
+    #  MONGO_URL = "mongodb://localhost:27017/cargo_friend";
+    MONGO_URL = "mongodb://localhost:27017/auto";
 
 app.config['MONGO_URI'] = MONGO_URL
 mongo = PyMongo(app)
@@ -535,7 +535,7 @@ def get_datas():
         print(collectionName)
         
         # FILTERED
-        if 'filtered' in grid or filterSelected != 0:
+        if 'filtered' in grid:
             objFilter = {}
             for i, val in enumerate(grid['filtered']):
                 print(val)
@@ -574,22 +574,20 @@ def get_datas():
         if "details" in grid:
             config.update({'config': grid['cols']})
             # output.append({'config': grid['cols']})
-        else:
-            config.update({'config': grid['cols']})
-
-        if 'export' in grid['details']:
-            config.update({"details": {"export": True, "export_id":grid['details']['export_id']}})
+            if 'export' in grid['details']:
+                config.update({"details": {"export": True, "export_id":grid['details']['export_id']}})
         # else:
         #     config.update({"details": {"export": False, "export_id":0}})
         
-        if 'group' in grid['details']:
-            config.update({"group": grid['details']['group']})
-        # else:
-        #     config.update({"group": False})
+            if 'group' in grid['details']:
+                config.update({"group": grid['details']['group']})
+            # else:
+            #     config.update({"group": False})
 
-        if 'activated' in grid['details']: 
-            config.update({"details_activated": grid['details']['activated']})
-        
+            if 'activated' in grid['details']: 
+                config.update({"details_activated": grid['details']['activated']})
+        else:
+            config.update({'config': grid['cols']})
             
         output.append(config)
 
