@@ -590,7 +590,7 @@ def get_datas():
             config.update({"details_activated": grid['details']['activated']})
         
             
-        output.append({"config" : config})
+        output.append(config)
 
         course_list = []
         # Pour chaque élement de la collection data
