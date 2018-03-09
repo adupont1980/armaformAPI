@@ -717,7 +717,7 @@ def get_datas():
         return Response({"msg":"JSON Format Error." }, status=400, mimetype='application/json')
     except (KeyError):
         print(KeyError)
-        return Response({"msg" : "JSON Format Error." , " KeyError": KeyError}, status=400, mimetype='application/json')
+        return Response({"JSON Format Error." , KeyError.args}, status=400, mimetype='application/json')
     except (TypeError):
         print(TypeError)
         return Response({"msg" : "JSON Format Error." , "TypeError": TypeError}, status=400, mimetype='application/json')
