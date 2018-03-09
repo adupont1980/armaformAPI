@@ -33,8 +33,8 @@ MONGO_URL = os.environ.get('MONGO_URL')
 
 #DEV PURPOSE
 if not MONGO_URL:
-    #  MONGO_URL = "mongodb://localhost:27017/cargo_friend";
-    MONGO_URL = "mongodb://localhost:27017/auto";
+     MONGO_URL = "mongodb://localhost:27017/cargo_friend";
+    # MONGO_URL = "mongodb://localhost:27017/auto";
 
 app.config['MONGO_URI'] = MONGO_URL
 mongo = PyMongo(app)
@@ -75,7 +75,7 @@ def is_number(s):
 @app.route('/')
 def index():
     
-    return 'SERVER STARTED'
+    return 'SSERVER STARTED'
 
 # ##d###############################
 # GET FORM DATA     _id param
@@ -367,7 +367,7 @@ def setGroupToUser():
 @app.route('/step', methods=['GET'])
 @cross_origin()
 def get_steps():
-    
+    print("get_steps")
     # LIST OF STEPS FROM SELECTED MASTER
     output = []
     appName = request.args['app_name']
@@ -511,7 +511,7 @@ def get_ballet_details():
 @app.route('/data_grid', methods=['GET'])
 @cross_origin()
 def get_datas():
-    # try:
+    try:
         gridName = request.args['grid_name']
         filterSelected = request.args['filter']
         print(gridName)
@@ -552,6 +552,7 @@ def get_datas():
         else:
             datas = dataCollection.find({})
         
+        print(datas)
         # SORTED
         if 'sorted' in grid:
             # sortBy = grid['sorted'][0]
@@ -711,15 +712,15 @@ def get_datas():
     
         return jsonify(output)
 
-    # except (ValueError):
-    #     print("Value Error")
-    #     return Response({"JSON Format Error."}, status=400, mimetype='application/json')
-    # except (KeyError):
-    #     print(KeyError)
-    #     return Response({"JSON Format Error."}, status=400, mimetype='application/json')
-    # except (TypeError):
-    #     print(TypeError)
-    #     return Response({"JSON Format Error."}, status=400, mimetype='application/json')
+    except (ValueError):
+        print("Value Error")
+        return Response({"JSON Format Error."}, status=400, mimetype='application/json')
+    except (KeyError):
+        print(KeyError)
+        return Response({"JSON Format Error."}, status=400, mimetype='application/json')
+    except (TypeError):
+        print(TypeError)
+        return Response({"JSON Format Error."}, status=400, mimetype='application/json')
         # resp = Response({"JSON Format Error."}, status=400, mimetype='application/json')
         
 
