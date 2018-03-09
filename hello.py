@@ -535,7 +535,7 @@ def get_datas():
         print(collectionName)
         
         # FILTERED
-        if 'filtered' in grid:
+        if 'filtered' in grid or filterSelected != 0:
             objFilter = {}
             for i, val in enumerate(grid['filtered']):
                 print(val)
@@ -710,7 +710,7 @@ def get_datas():
     # print(docs_list)
         # print(output)
     
-        return jsonify(output)
+        
 
     except (ValueError):
         print("Value Error")
@@ -722,7 +722,8 @@ def get_datas():
         print(TypeError)
         return Response({"msg" : "JSON Format Error." , "TypeError": TypeError}, status=400, mimetype='application/json')
         # resp = Response({"JSON Format Error."}, status=400, mimetype='application/json')
-        
+
+        return jsonify(output)  
 
     # return jsonify(json.dumps(docs_list, default=json_util.default))
 
