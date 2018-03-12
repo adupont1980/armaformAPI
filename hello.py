@@ -594,9 +594,6 @@ def get_datas():
         course_list = []
         # Pour chaque élement de la collection data
         for s in datas:
-            # print("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC")
-            # print(s)
-            # print(str(s["_id"]))
             record = {}
             record.update({"_id": str(s["_id"])})
             
@@ -610,27 +607,10 @@ def get_datas():
             listValuesFieldPanel = []
             # pour chaque element defini dans la collection grid
             for dicCol in grid['cols']:
-                # colsName.append(colName) 
                 if 'field_panel_name' in dicCol: 
-                #     print('dans field panel')
-                #     print(dicCol['field_panel_name'])
-                #     print(dicCol['field_panel_values'])
-                # # print("value")
-                # print(s[colName])
-                   
-                    
-                    # print(colName)
-                    # print('is dict')
-                    # for keyName in dicCol:
-                    #      print("keyName " + keyName )
-                    #     # print(colName[keyName])
-                    #     # 
-                        
                     for i,val in enumerate(dicCol['field_panel_values']):
                         try:
-
                             cle = dicCol['field_panel_name'] + '_' + val['data']
-
                             valeur = next((item for item in s[dicCol['field_panel_name']] if item.get(val['data'])), '')
                             if (valeur != ''):
                                 valeur = valeur[val['data']]
@@ -650,64 +630,19 @@ def get_datas():
                     if dicCol['type'] == 'combo':
                         if (len(course_list) == 0):
                             course_cursor = mongo.db.balletCourse.find({"stage": filterSelected},{"name":1})
-                            print(filterSelected)
-                            print(course_cursor)
                             for courses in course_cursor:
                                 course_list.append(courses['name'])
-                            print('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
-                            print(course_list)
                         if dicCol['data'] in s:
                             record.update({dicCol['data']: s[dicCol['data']]})
                             record.update({'course_list': course_list}) 
-
-                        
                 else:
                     #SI PAS FIELD PANEL ALORS COLONNE CLASIQUE TITLE + DATA
                     record.update({dicCol['data']: s[dicCol['data']]})
                     record.update({'title': dicCol['title']})
             
-            
-            
-            # if 'details' in grid:
-            #     details = {}
-            #     if 'activated' in grid['details']:
-            #         details.update({"activated": grid['details']['activated'] })
-            #     else:
-            #         details.update({"activated": False })
-            #     if 'group' in grid['details']:
-            #         details.update({"group": grid['details']['group'] })
-            #     else:
-            #         details.update({"group": False })
-
-
-            #     record.update({"details": details})
-            # else:
-            #     record.update({"details": {"activated": False, "group":False}})
-            
-
             if 'cargo_details' in grid:
                 if 'activated' in grid['cargo_details']:
                     record.update({"cargo_details": {"activated": True}})
-            #     else:
-            #         record.update({"cargo_details": {"activated": False}})
-            # else:
-            #     record.update({"cargo_details": {"activated": False}})  
-
-            # print(listValuesFieldPanel)
-            output.append(record)
-            # print("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-            # print(record)
-            # print(grid)
-            # print(grid['filtered'][0]['by'])
-        
-        # print(output)
-
-        # cursor = eval(data)
-
-    # docs_list  = list(data)
-    # print(docs_list)
-        # print(output)
-    
         return jsonify(output)
 
     except (ValueError):
@@ -719,12 +654,6 @@ def get_datas():
     except (TypeError):
         print(TypeError)
         return Response({"msg" , TypeError}, status=400, mimetype='application/json')
-        # resp = Response({"JSON Format Error."}, status=400, mimetype='application/json')
-        
-
-    # return jsonify(json.dumps(docs_list, default=json_util.default))
-
-    # return jsonify(docs_list)
 
 ###################
 # GET LIST OF GRIDS
@@ -732,14 +661,11 @@ def get_datas():
 @app.route('/get_grids', methods=['POST'])
 @cross_origin()
 def getGrids():
-    
     # MAYBE WE CAN REMOVE THIS ARG IF WE USE 1 APP FOR ONLY ONE PROJECT
     # master = request.args['master']
+
     data = request.get_json(force=True)
-    # master = request.args['master']
     gridCollection = mongo.db.grids
-    print(data)
-    print("master")
     
     gridList = gridCollection.find({"activated": True, "master": data['master'] })
     dataCollection = eval('mongo.db.'+data['master'])
@@ -774,9 +700,6 @@ def getGrids():
     else:
         try:
             for grid in gridList:
-                # if "type" in grid:
-                #     output.append({  "name": grid['name'], "listBtn": grid['list'], "display": True })
-                # else: 
                 output.append({"name": grid['name'], "display": True})
 
         except StopAsyncIteration:
@@ -852,8 +775,10 @@ def send_email():
         course   = formData['course_type']
 
         me = 'info@russianmastersballet.com'
+        to = "anthony_dupont@hotmail.com"
         password = 'Rmbc2015'
 
+        # AUTOMATIC NOTIFICATION SENT TO THE REGISTER GUY
         msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n----------------------------------------------------------------------------------------\n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
         msg['Subject'] = mailInfo['subject']
         msg['From'] = me
@@ -866,7 +791,6 @@ def send_email():
         session.quit()
 
         # SEND NOTIFICATION TO ADMIN
-
         msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
         msg['Subject'] = "New registration received"
         msg['From'] = me
@@ -886,7 +810,7 @@ def send_email():
                 "\n Years of  experience: "+ formData['years_of_experience'] +
                 "\n email: "+ email )
         
-        to = "anthony_dupont@hotmail.com"
+        
         bckMessage['Subject'] = "New registration received"
         bckMessage['From'] = me
         bckMessage['To'] = to
@@ -906,6 +830,7 @@ def send_email():
     #     sender  = mailInfo['sender']
     #     me = 'info@russianmastersballet.com'
     #     password = 'Rmbc2015'
+
     # # PREPARE CONFIRMATION MSG
     # # html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
     
@@ -938,73 +863,6 @@ def send_email():
     #     formData = dataCollection.find_one({"_id":ObjectId(formId)})
     #     sender = mailInfo['sender']
 
-    #     # # GET INFO TO PUT IN TEMPLATE
-    #     profile  = formData['profile']
-    #     prenom   = profile[0]['firstname']
-    #     nom      = profile[1]['nom']
-    #     email    = profile[3]['email']
-    #     stage    = formData['stage']
-    #     course   = formData['course_type']
-
-        
-
-    #     confirmMsg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n----------------------------------------------------------------------------------------\n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
-    #     confirmMsg['Subject'] = mailInfo['subject']
-    #     confirmMsg['From'] = me
-    #     confirmMsg['To'] = email
-
-        
-    #     session = smtplib.SMTP("smtp.live.com", 587)
-    #     session.login(me, password)
-    #     session.sendmail(me, me, confirmMsg.as_string())
-    #     session.quit()
-
-
-    #     # mail.send(msg)
-      
-      
-    #     # session = smtplib.SMTP("smtp.1and1.com", 587)
-    #     # session.login(me, password)
-    #     # session.sendmail(me, email, msg.as_string())
-    #     # session.quit()
-
-    #     # SEND NOTIFICATION TO ADMIN
-    #     msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
-
-    #     session = smtplib.SMTP("smtp.1and1.com", 587)
-    #     session.login(me, password)
-    #     session.sendmail(me, me, msg.as_string())
-    #     session.quit()
-    #     # mail.send(msg)
-      
-
-    #     # # SEND MESSAGE TO ADMIN WITH DATABACKUP
-        
-    #     bckMessage = MIMEText(prenom + " " + nom + " has registred to the "+ course + 
-    #             " course for "+ stage +
-    #             "\n\n age:  " + formData['age'] +
-    #             "\n duration: "+ formData['duration'] +
-    #             "\n Residence: "+ formData['residence'] +
-    #             "\n Years of  experience: "+ formData['years_of_experience'] +
-    #             "\n email: "+ email )
-        
-      
-    #     bckMessage['Subject'] = "New registration received"
-    #     bckMessage['From'] = me
-    #     bckMessage['To'] = "anthony_dupont@hotmail.com"
-
-    #     session = smtplib.SMTP("smtp.1and1.com", 587)
-    #     session.login(me, password)
-    #     session.sendmail(me, "anthony_dupont@hotmail.com", bckMessage.as_string())
-    #     session.quit()
-    #     # mail.send(bckMessage)
-
-
-        # session = smtplib.SMTP("smtp.1and1.com", 587)
-        # session.login(me, password)
-        # session.sendmail(me, to, bckMessage.as_string())
-        # session.quit()
-
     return ('OK')
 
 #####################
@@ -1027,9 +885,9 @@ def signup():
     except expression as identifier:
         pass
 
-#############################
-# GET GROUPS BY COURSE_TYPE #
-#############################
+####################################
+# GET GROUPS BY COURSE_TYPE BALLET #
+####################################
 @app.route('/get_groups', methods=['GET'])
 @cross_origin()
 def getGroups():
@@ -1048,23 +906,14 @@ def getGroups():
             { "$group": {  "_id": {"group": "$group", "week": "1"}, "count": {"$sum":1} }  }  
         ]
         week1 = mongo.db.ballet.aggregate(pipeLine1)
-        print(pipeLine1)
         pipeLine = [
             { "$match" : { "$and": [  {"course_type" : courseType, "stage": stage }, 
                                     {"duration" : { "$in": ["2","3"]} }]}}, 
             { "$group": {  "_id": {"group": "$group", "week": "2"}, "count": {"$sum":1} }  }  
         ]
         week2 = mongo.db.ballet.aggregate(pipeLine)
-        print(week1)
-        print(week2)
-        
         wk1List  = list(week1)
-        print(wk1List)
         wk2List  = list(week2)
-        print(wk2List)
-        print(len(wk1List))
-        print(len(wk2List))
-        
         try:
             for group in groups:
                 jsonGroups = { "group" : group, "lst": []}
@@ -1073,29 +922,18 @@ def getGroups():
             print("Empty cursor")
 
         for grp in jsonGroupsArray:
-            print(grp)
-            
             group1Find = False
             group2Find = False
             for wk1 in wk1List:
-                print("wk1")
                 if wk1['_id']['group'] == grp['group']:
                     grp['lst'].append({"week": wk1['_id']["week"], "people": wk1['count']})
                     group1Find = True
-                    print("week: " + wk1['_id']["week"])
-                    print(group + ":" + str(wk1['count']))
                     break
-                # jsonGroupsArray.append(jsonGroups)
             for wk2 in wk2List:        
-                print("wk2")
-                print(grp['group'])
                 if wk2['_id']['group'] == grp['group']:
                     grp['lst'].append({"week": wk2['_id']["week"], "people": wk2['count']})
                     grp['lst'].append({"week": "3", "people": wk2['count']})
                     group2Find = True
-                    print("week: " + wk2['_id']["week"])
-                    print(group + ":" + str(wk2['count']))
-                    print(grp['lst'])
                     break
             
             if group1Find == False:
@@ -1109,8 +947,8 @@ def getGroups():
 
 
         jsonGroupsArray.sort(key=operator.itemgetter("group"))
-        print(jsonGroupsArray)
         jsonGroupsArray.append({"groups": groups})
+
         return json.dumps(jsonGroupsArray, default=json_util.default)
     else:
         jsonGroupsArray.append({ "group" : "WITHOUT GROUP", "lst": []})
@@ -1127,8 +965,6 @@ def getGroups():
 
         
         for grp in jsonGroupsArray:
-            print(grp['group'])
-            print('XXXXXXXXXX')
             groupFound = False
             for group in groups_weekList:
                 print(group['_id'])
@@ -1140,7 +976,6 @@ def getGroups():
                 grp['lst'].append({"week": 1, "people": 0})
             grp['lst'].sort(key=operator.itemgetter("week"))
         jsonGroupsArray.sort(key=operator.itemgetter("group"))
-        print(jsonGroupsArray)
         jsonGroupsArray.append({"groups": groups})
 
         return json.dumps(jsonGroupsArray, default=json_util.default)
@@ -1174,7 +1009,6 @@ def signin():
         output = {"logged": False, "message": "Erreur authentification" }
     
     return json.dumps(output, default=json_util.default)
-    # return output
 
 
 #############################################
@@ -1184,13 +1018,8 @@ def signin():
 @cross_origin()
 def updateStudent():
     formValues = request.get_json()
-    print('avant check')
     if checkAuthentication(formValues['token']):
-        print('check is true')
-        # print(formValues['_id'])
         studentId = formValues['_id']
-        # print(studentId['$oid'])
-        print(formValues)
         new_id = mongo.db.ballet.update(
             {'_id': ObjectId(studentId['$oid']) }, 
             { '$set':
@@ -1229,21 +1058,17 @@ def updateStudent():
 @app.route('/export_excel', methods=['POST'])
 @cross_origin()
 def exportExcel():
-
     formValues = request.get_json()
     
     stage = formValues['stage']
     course = formValues['course_type']
     
     export_id = formValues['export_id']
-    print(stage)
 
     def generate():
         print(course)
         data = io.StringIO()
         w = csv.writer(data)
-
-
 
         if export_id > 0:
             configExport = mongo.db.exports_templates.find({"export_id": export_id})
@@ -1254,7 +1079,6 @@ def exportExcel():
 
             clause = {}
             for filterValue in configExport[0]['filtered']:
-                print(filterValue)
                 clause.update({filterValue['by']: filterValue['value_by']})
             
             students = mongo.db.ballet.find(clause)
@@ -1282,9 +1106,7 @@ def exportExcel():
                 if export_id > 0:
                     values = []
                     for colsValue in configExport[0]['cols']:
-                        # print(colsValue['data'])
                         tmpColVal = colsValue['data']
-                        # print("tmpColVal: " + tmpColVal)
                         if 'ori' in colsValue:
                             ori = student[colsValue['ori']]
                             for i, val in enumerate(ori):
@@ -1293,10 +1115,7 @@ def exportExcel():
                                     break
                         else:
                             values.append(student[tmpColVal])
-                            # print(student[tmpColVal])
                     w.writerow((values))
-                    
-                        
                 else:
                     profile  = student['profile']
                     prenom   = profile[0]['firstname']
@@ -1326,7 +1145,8 @@ def exportExcel():
             
         except StopAsyncIteration:
             print("Empty cursor")   
-    # add a filename
+
+    # CREATE FILE NAME
     headers = Headers()
     headers.set('Content-Disposition', 'attachment', filename='log.csv')
     
@@ -1338,12 +1158,8 @@ def exportExcel():
 
 def checkAuthentication(token):
     try:
-        print(token)
         if token != None:
-            print('token valid')
             payload = jwt.decode(token, 'secret', algorithm='HS256')
-            print(payload)
-            print('dDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD')
             result = True
         else:
             print('token invalid')
@@ -1352,14 +1168,15 @@ def checkAuthentication(token):
     except (jwt.DecodeError, jwt.ExpiredSignatureError):
         return json.dumps({'message': 'Token is invalid'}, default=json_util.default)
 
-
+################################
+# VEHICULES APP - MAKE OFFER   #
+################################
 @app.route('/make_offer', methods=['POST'])
 @cross_origin()
 def makeOffer():
     
     formValues = request.get_json()
     token = formValues['token']
-    print(formValues['token'])
     _id = formValues['_id']
     if checkAuthentication(formValues['token']):
         carId =  formValues['_id']
@@ -1423,9 +1240,6 @@ def sellingPrice():
                     'etat_transaction': 4
                 }
             }, upsert=False)
-        
-        # new_id = eval(query)
-        print('token Valid')
         return jsonify({"etat": 4, "title": "Vendu", "message": "Vente véhicule enregistré" }) 
     else: 
         print('token invalid')
