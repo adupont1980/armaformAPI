@@ -94,12 +94,10 @@ def get_form_data():
 def get_data():
     #  TODO TESTER SI PLUSIEURS VALEURS SONT PASSEES DANS LE FILTRE
     collectionName = request.args['col_name']
-    print(collectionName)
     filtersName = request.args['filters_name'].split(',')
     filtersValue = request.args['filters_value'].split(',')
     valueToSelect = request.args['select']
     returnType = request.args['return_type']
-    # key = ', {"'+ valueToSelect + '":1}'
     key = 'key: "'+ valueToSelect + '",'
 
     # print(filtersValue)
@@ -124,7 +122,6 @@ def get_data():
     condition = condition[:-1]
     condition = condition + '}'     
     if returnType == 'btn':
-        print('**********************************')
         # IF WE NEED TO TREAT A DATE RANGE
         if (valueToSelect == "date_debut"):
             collection = 'mongo.db.vehicules.aggregate([{"$match" : { "modele" : "'+ filtersValue[0]  +'" }},{ "$group": { "_id": "$modele", "maxDate" : { "$max": "$date_debut"}, "minDate": {"$min": "$date_fin"}}}])'
@@ -145,20 +142,15 @@ def get_data():
             return jsonify(output)
 
         else:
-            print('iiiiiiiiiiiiiiiiiiiiiii')
-            print(isFiltered)
             if (isFiltered):
                 collection = 'mongo.db.'+collectionName+'.find('+ condition +').distinct("'+valueToSelect+'")'
-                print(collection)
             else:
                 collection = 'mongo.db.'+collectionName+'.find().distinct("'+valueToSelect+'")'
             
             cursor = eval(collection)
 
             docs_list  = list(cursor)
-            print(docs_list)
             docs_list.sort()
-            print(docs_list)
             return json.dumps(docs_list, default=json_util.default)
             
 
@@ -232,19 +224,18 @@ def save_step():
     fileNameList = []
     objToSave = {}
     safeOrigin = False
-    x = 0
+    
     for obj in data:
         print(x)
         print(obj)
         
         # A MODIFIER QUAND J'AURAI CREE TOKEN
+        listAppName = ['ballet', 'auto', 'modele']
         if 'app_name' in obj:
-            if obj['app_name'] == 'ballet':
-                safeOrigin = True
-            if obj['app_name'] == 'auto':
-                safeOrigin = True
-            if obj['app_name'] == 'modele':
-                safeOrigin = True
+            if obj['app_name'] in listAppName:
+                safeSource = ['https://ramax.herokuapp.com/', 'https://russianballet.herokuapp.com/']
+                if referer in safeSource:
+                    safeOrigin = True
         if 'token' in obj:
             tokenFromApp = obj['token']
             collectionName = obj['app_name']
@@ -260,8 +251,6 @@ def save_step():
                     # if str(encodedToken) == tokenFromApp:
                     safeOrigin = True
                     print('key OK we can save source is safe')
-            
-            print("SAFE ORIGIN: ")
             print(safeOrigin)    
         else:
             
@@ -290,22 +279,16 @@ def save_step():
                         "etat_transaction": 1   
                     })
             objToSave.update(obj)
-        x = x + 1
+        
 
     currentDate = { "currentDate" : str(datetime.now())}
     # print(obj['master'])
     objToSave.update(currentDate)
-    
-    print(objToSave)    
+  
     if safeOrigin:
         collection = 'mongo.db.'+collectionName+'.insert_one('+ str(objToSave) +')'
 
         new_id = eval(collection)
-        print(new_id.inserted_id)
-        # docs_list  = list(cursor)
-
-        # new_id = mongo.db.insert(objToSave)
-        # print(new_id)
         return str(new_id.inserted_id)
     else:
         return str('NO_NO_NO')
@@ -357,9 +340,7 @@ def setGroupToUser():
     print(new_id)
     print(idRecord)
 
-    return "ok"
-
-
+    return jsonify({"Changed": True, "new_id": new_id})
 
 # ########################
 # GET STEPS CONFIGURATION
@@ -385,6 +366,7 @@ def get_steps():
 
     encodedToken = jwt.encode({'key_gen': master['key_gen']}, 'secret', algorithm='HS256')
 
+    # DESIGN TEMPLATE
     if 'template' in master:
         template = mongo.db.templates.find_one({"master": master['template']})
         design_page = {
@@ -398,7 +380,6 @@ def get_steps():
 
 
     Steps = mongo.db.steps.find({"master": appName}).sort("step_id",1)
-    # .sort("step_id",1)  {$elemMatch:{$eq:"auto"}}}, {"_id":0})
     logoUrl = ""
     if "logo_url" in master:
         logoUrl = master['logo_url'] 
@@ -417,13 +398,9 @@ def get_steps():
     })
 
     for step in Steps:
-        print(step['step_id'])
-        
+        conditions = []
         if 'conditions' in step: 
-            conditions = step['conditions']
-        else:
-            conditions = []
-        
+            conditions.append(step['conditions'])
                
         output.append({
         "step_id": step['step_id'],
@@ -436,7 +413,6 @@ def get_steps():
         "conditions": conditions,
         "token": str(encodedToken)
         })
-        
 
     return jsonify(output)
 
@@ -447,13 +423,8 @@ def get_steps():
 @cross_origin()
 def get_details():
     objId = request.args['id']
-    print(objId)
     dataCollection = mongo.db.auto
     details = dataCollection.find_one({"_id":ObjectId(objId)})
-    # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
-    # print(details['import'])
-    print('jjjjjjjjjjjj')
-    # print(details)
     return json.dumps(details, default=json_util.default)
 
 ########################
@@ -466,13 +437,7 @@ def get_cargo_details():
     print(objId)
     dataCollection = mongo.db.rates
     details = dataCollection.find_one({"_id":ObjectId(objId)})
-    # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
-    # print(details['import'])
-    print('jjjjjjjjjjjj')
-    # print(details)
     return json.dumps(details, default=json_util.default)
-
-
 
 ########################
 # GET TECH DETAILS (CAR APP)  #
@@ -483,10 +448,6 @@ def get_tech_details():
     version = request.args['version']
     dataCollection = mongo.db.vehicules
     details = dataCollection.find_one({"version": version})
-    # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
-    # print(details['import'])
-    print('tech details')
-    # print(details)
     return json.dumps(details, default=json_util.default)
 
 ########################
@@ -495,14 +456,11 @@ def get_tech_details():
 @app.route('/ballet_details', methods=['GET'])
 @cross_origin()
 def get_ballet_details():
+
     objId = request.args['id']
-    print(objId)
     dataCollection = mongo.db.ballet
     details = dataCollection.find_one({"_id":ObjectId(objId)})
-    # result = mongo.db.datas.find_one({'_id': ObjectId(idRecord)})
-    # print(details['import'])
-    print('jjjjjjjjjjjj')
-    # print(details)
+
     return json.dumps(details, default=json_util.default)
 
 # ######################
@@ -571,29 +529,22 @@ def get_datas():
 
         output = []
         config = {"details_activated": False, "group": False, "export": False, "export_id":0}
+        config.update({'config': grid['cols']})
         if "details" in grid:
-            config.update({'config': grid['cols']})
-            # output.append({'config': grid['cols']})
             if 'export' in grid['details']:
-                config.update({"details": {"export": True, "export_id":grid['details']['export_id']}})
-        # else:
-        #     config.update({"details": {"export": False, "export_id":0}})
-        
+                config.update({"export": grid['details']['export'], "export_id":grid['details']['export_id']})
             if 'group' in grid['details']:
                 config.update({"group": grid['details']['group']})
-            # else:
-            #     config.update({"group": False})
-
             if 'activated' in grid['details']: 
                 config.update({"details_activated": grid['details']['activated']})
-        else:
-            config.update({'config': grid['cols']})
+
             
         output.append(config)
 
         course_list = []
         # Pour chaque élement de la collection data
         for s in datas:
+            print(s)
             record = {}
             record.update({"_id": str(s["_id"])})
             
@@ -643,6 +594,8 @@ def get_datas():
             if 'cargo_details' in grid:
                 if 'activated' in grid['cargo_details']:
                     record.update({"cargo_details": {"activated": True}})
+            output.append(record)
+                
         return jsonify(output)
 
     except (ValueError):
@@ -801,7 +754,7 @@ def send_email():
         session.sendmail(me, me, msg.as_string())
         session.quit()
 
-        # SEND MESSAGE TO ADMIN WITH DATABACKUP
+        # SEND MESSAGE TO DEV WITH DATABACKUP
         bckMessage = MIMEText(prenom + " " + nom + " has registred to the "+ course + 
                 " course for "+ stage +
                 "\n\n age:  " + formData['age'] +
@@ -883,7 +836,7 @@ def signup():
         return jsonify({"processed": True, "message": "User created" })
         
     except expression as identifier:
-        pass
+        return jsonify({"processed": False, "message": "An error occured" })
 
 ####################################
 # GET GROUPS BY COURSE_TYPE BALLET #
@@ -1196,7 +1149,9 @@ def makeOffer():
         print('token invalid')
         return jsonify({"title": "Erreur", "message": "Veuillez-vous connecter pour mettre à jour ce champs"})
 
-
+################################
+# VEHICULES APP -     BOUGHT   #
+################################
 
 
 @app.route('/save_buying_price', methods=['POST'])
@@ -1224,6 +1179,9 @@ def buyingPrice():
         print('token invalid')
         return jsonify({"title": "Erreur", "message": "Veuillez-vous connecter pour mettre à jour ce champs"})
 
+################################
+# VEHICULES APP - CAR SOLD     #
+################################
 @app.route('/save_selling_price', methods=['POST'])
 @cross_origin()
 def sellingPrice():
