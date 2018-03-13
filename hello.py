@@ -30,11 +30,15 @@ app = Flask(__name__)
 mail = Mail()
 CORS(app)
 MONGO_URL = os.environ.get('MONGO_URL')
+PROD_DB = os.environ.get('PROD_DB')
 
 #DEV PURPOSE
 if not MONGO_URL:
     #  MONGO_URL = "mongodb://localhost:27017/cargo_friend";
     MONGO_URL = "mongodb://localhost:27017/auto";
+
+if not PROD_DB:
+    PROD_DB = False
 
 app.config['MONGO_URI'] = MONGO_URL
 mongo = PyMongo(app)
@@ -740,16 +744,17 @@ def send_email():
         session.sendmail(me, email, msg.as_string())
         session.quit()
 
-        # SEND NOTIFICATION TO ADMIN
-        msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
-        msg['Subject'] = "New registration received"
-        msg['From'] = me
-        msg['To'] = me
+        if PROD_DB:
+            # SEND NOTIFICATION TO ADMIN
+            msg = MIMEText(prenom + " " + nom + " has registred to the "+ course + " course for "+ stage   )
+            msg['Subject'] = "New registration received"
+            msg['From'] = me
+            msg['To'] = to
 
-        session = smtplib.SMTP("smtp.1and1.com", 587)
-        session.login(me, password)
-        session.sendmail(me, me, msg.as_string())
-        session.quit()
+            session = smtplib.SMTP("smtp.1and1.com", 587)
+            session.login(me, password)
+            session.sendmail(me, me, msg.as_string())
+            session.quit()
 
         # SEND MESSAGE TO DEV WITH DATABACKUP
         bckMessage = MIMEText(prenom + " " + nom + " has registred to the "+ course + 
