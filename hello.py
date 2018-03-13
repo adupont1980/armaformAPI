@@ -239,12 +239,8 @@ def save_step():
         if 'token' in obj:
             tokenFromApp = obj['token']
             collectionName = obj['app_name']
-            print(collectionName)
-            print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
             masterData = mongo.db.master.find_one({"name": collectionName})
             encodedToken = jwt.encode({'key_gen': masterData['key_gen']}, 'secret', algorithm='HS256')
-            print(tokenFromApp)
-            print(encodedToken)
             if collectionName == 'play':
                 if referer == 'https://bde-play.herokuapp.com/step':
                     # https://bde-play.herokuapp.com
@@ -340,7 +336,8 @@ def setGroupToUser():
     print(new_id)
     print(idRecord)
 
-    return jsonify({"Changed": True, "new_id": new_id})
+    # return jsonify({"Changed": True, "new_id": new_id})
+    return json.dumps({'message': 'Group updated'}, default=json_util.default)
 
 # ########################
 # GET STEPS CONFIGURATION
