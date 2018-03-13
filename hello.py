@@ -230,7 +230,6 @@ def save_step():
     safeOrigin = False
     
     for obj in data:
-        print(x)
         print(obj)
         
         # A MODIFIER QUAND J'AURAI CREE TOKEN
@@ -291,7 +290,7 @@ def save_step():
         new_id = eval(collection)
         return str(new_id.inserted_id)
     else:
-        return str('NO_NO_NO')
+        return str('Not authorized')
 
 
 ##################################
