@@ -233,17 +233,24 @@ def save_step():
         print(obj)
         
         # A MODIFIER QUAND J'AURAI CREE TOKEN
-        listAppName = ['ballet', 'auto', 'modele']
-        if 'app_name' in obj:
-            if obj['app_name'] in listAppName:
-                safeSource = ['https://ramax.herokuapp.com/step', 'https://russianballet.herokuapp.com/step']
-                if referer in safeSource:
-                    safeOrigin = True
+        # listAppName = ['ballet', 'auto', 'modele']
+        # if 'app_name' in obj:
+        #     if obj['app_name'] in listAppName:
+        #         safeSource = ['https://ramax.herokuapp.com/step', 'https://russianballet.herokuapp.com/step']
+        #         if referer in safeSource:
+        #             safeOrigin = True
         if 'token' in obj:
             tokenFromApp = obj['token']
             collectionName = obj['app_name']
             masterData = mongo.db.master.find_one({"name": collectionName})
             encodedToken = jwt.encode({'key_gen': masterData['key_gen']}, 'secret', algorithm='HS256')
+            listAppName = ['ballet', 'auto', 'modele']
+            if collectionName in listAppName:
+                safeSource = ['https://ramax.herokuapp.com/step', 'https://russianballet.herokuapp.com/step']
+                if referer in safeSource:
+                    # https://bde-play.herokuapp.com
+                    # if str(encodedToken) == tokenFromApp:
+                    safeOrigin = True
             if collectionName == 'play':
                 if referer == 'https://bde-play.herokuapp.com/step':
                     # https://bde-play.herokuapp.com
