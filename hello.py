@@ -236,7 +236,7 @@ def save_step():
         listAppName = ['ballet', 'auto', 'modele']
         if 'app_name' in obj:
             if obj['app_name'] in listAppName:
-                safeSource = ['https://ramax.herokuapp.com/', 'https://russianballet.herokuapp.com/']
+                safeSource = ['https://ramax.herokuapp.com/step', 'https://russianballet.herokuapp.com/step']
                 if referer in safeSource:
                     safeOrigin = True
         if 'token' in obj:
