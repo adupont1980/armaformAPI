@@ -227,7 +227,7 @@ def save_step():
     print(data)
     fileNameList = []
     objToSave = {}
-    safeOrigin = False
+    safeOrigin = True
     
     for obj in data:
         print(obj)
