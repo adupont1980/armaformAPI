@@ -35,7 +35,8 @@ PROD_DB = os.environ.get('PROD_DB')
 #DEV PURPOSE
 if not MONGO_URL:
     #  MONGO_URL = "mongodb://localhost:27017/cargo_friend";
-    MONGO_URL = "mongodb://localhost:27017/auto";
+    # MONGO_URL = "mongodb://localhost:27017/auto";
+    MONGO_URL = "mongodb://russianballet:Axonian456@ds135029.mlab.com:35029/heroku_p754dw74"
 
 if not PROD_DB:
     PROD_DB = False
@@ -444,7 +445,7 @@ def get_cargo_details():
     destination = request.args['destination']
     dataCollection = mongo.db.rates
     details = dataCollection.find({"origin":origin, "destination":destination})
-    return json.dumps(details, default=json_util.default)
+    return details
 
 ########################
 # GET TECH DETAILS (CAR APP)  #
