@@ -442,7 +442,6 @@ def get_details():
 def get_cargo_details():
     origin = request.args['origin']
     destination = request.args['destination']
-    print(objId)
     dataCollection = mongo.db.rates
     details = dataCollection.find({"origin":origin, "destination":destination})
     return json.dumps(details, default=json_util.default)
