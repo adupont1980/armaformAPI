@@ -79,7 +79,7 @@ def is_number(s):
 @app.route('/')
 def index():
     
-    return 'SSERVER STARTED'
+    return 'SERVER STARTED'
 
 # ##d###############################
 # GET FORM DATA     _id param
@@ -440,10 +440,11 @@ def get_details():
 @app.route('/cargo_details', methods=['GET'])
 @cross_origin()
 def get_cargo_details():
-    objId = request.args['id']
+    origin = request.args['origin']
+    destination = request.args['destination']
     print(objId)
     dataCollection = mongo.db.rates
-    details = dataCollection.find_one({"_id":ObjectId(objId)})
+    details = dataCollection.find({"origin":origin, "destination":destination})
     return json.dumps(details, default=json_util.default)
 
 ########################
