@@ -35,8 +35,8 @@ PROD_DB = os.environ.get('PROD_DB')
 #DEV PURPOSE
 if not MONGO_URL:
     #  MONGO_URL = "mongodb://localhost:27017/cargo_friend";
-    # MONGO_URL = "mongodb://localhost:27017/auto";
-    MONGO_URL = "mongodb://russianballet:Axonian456@ds135029.mlab.com:35029/heroku_p754dw74"
+    MONGO_URL = "mongodb://localhost:27017/auto";
+    # MONGO_URL = "mongodb://russianballet:Axonian456@ds135029.mlab.com:35029/heroku_p754dw74"
 
 if not PROD_DB:
     PROD_DB = False
@@ -157,9 +157,6 @@ def get_data():
             docs_list  = list(cursor)
             docs_list.sort()
             return json.dumps(docs_list, default=json_util.default)
-            
-
-
     else:
         output = []
         collection = 'mongo.db.'+collectionName+'.find().sort("order", 1)'
@@ -294,7 +291,6 @@ def save_step():
   
     if safeOrigin:
         collection = 'mongo.db.'+collectionName+'.insert_one('+ str(objToSave) +')'
-
         new_id = eval(collection)
         return str(new_id.inserted_id)
     else:
@@ -302,7 +298,7 @@ def save_step():
 
 
 ##################################
-# UPDATE CHECKBOX 
+# UPDATE  ANY CHECKBOX IN SPECIFIED COLLECTION
 ###################################
 @app.route('/update_checkbox', methods=['POST'])
 @cross_origin()
@@ -436,16 +432,26 @@ def get_details():
     return json.dumps(details, default=json_util.default)
 
 ########################
-# GET DETAILS CARGO (CARGO APP)  #
+# GET DETAILS CARGO APP#
 ########################
 @app.route('/cargo_details', methods=['GET'])
 @cross_origin()
 def get_cargo_details():
-    origin = request.args['origin']
-    destination = request.args['destination']
-    dataCollection = mongo.db.rates
-    details = dataCollection.find({"origin":origin, "destination":destination})
-    return details
+    try:
+        origin = request.args['origin']
+        destination = request.args['destination']
+        dataCollection = mongo.db.rates
+        details = list(mongo.db.rates.find({"origin":origin, "destination":destination}))
+        for d in details:
+            print(d)
+            # print(d['_-45'])
+        return json.dumps(details, default=json_util.default)
+    except Exception as inst:
+        print(type(inst))
+        print(inst.args)  
+        print(inst) 
+        return "ERROR"
+   
 
 ########################
 # GET TECH DETAILS (CAR APP)  #
@@ -628,19 +634,25 @@ def getGrids():
     data = request.get_json(force=True)
     gridCollection = mongo.db.grids
     
-    gridList = gridCollection.find({"activated": True, "master": data['master'] })
+    # gridList = gridCollection.find({"activated": True, "master": data['master'] })
+    gridList = gridCollection.find_one({"activated": True, "master": data['master'], "type":"get_grids" })
     dataCollection = eval('mongo.db.'+data['master'])
     output = []
-    if data['master'] == 'ballet':
-        listCourse = []
-        for grid in gridList:
-            if "type" in grid and grid['type'] == 'get_grids':
-                for infos in grid['list']:
+    # if data['master'] == 'ballet':
+    listCourse = []
+    try:
+        # for grid in gridList:
+            if gridList != None:
+                for infos in gridList['list']:
+                # for infos in grid['list']:
                     for children in infos['children']:
-                        res = dataCollection.count({"stage":infos['value'], "course_type":children})
-                        if res == 0:
+                        # res = dataCollection.count({"stage":infos['value'], "course_type":children})
+                        # if res == 0:
+                           
+                        if dataCollection.count({"stage":infos['value'], "course_type":children}) == 0:
                             filters = gridCollection.find({"name": children},{"filtered": 1})
                             clauses = {}
+                            nb = 0
                             for filtered in filters:
                                 for obj in filtered['filtered']:
                                     if (obj['value_by'] != 'filterSelected'):
@@ -648,23 +660,16 @@ def getGrids():
                                     else:
                                         clauses.update({obj['by']:infos['value']})
                                     
-                            if clauses == {}:
-                                nb = 0
-                            else:
+                            if clauses != {}:
                                 nb = dataCollection.count(clauses)
                         else:
                             nb = dataCollection.count({"stage":infos['value'], "course_type":children, "registred": True})
                         listCourse.append({'name':infos['value'],'children': children, 'nbRecords': nb })
-                output.append({  "name": grid['name'], "listBtn":listCourse, "display": True })
+                output.append({"name": gridList['name'], "listBtn":listCourse, "display": True })
             else: 
-                output.append({"name": grid['name'], "display": True})
-    else:
-        try:
-            for grid in gridList:
-                output.append({"name": grid['name'], "display": True})
-
-        except StopAsyncIteration:
-            print("Empty cursor")
+                output.append({"name": gridList['name'], "display": True})
+    except StopAsyncIteration:
+        print("Empty cursor")
 
     return jsonify(output) 
 
@@ -673,8 +678,6 @@ def getGrids():
 ###############
 @app.route('/log_mail', methods=['POST'])
 def log_email():
-    
-
     data = request.get_json(force=True)
 
     app.config['MAIL_SERVER']='smtp.live.com'
@@ -709,9 +712,24 @@ def send_email():
     appName = data['app_name']
 
     mailCollection = mongo.db.mails
-    mailInfo = mailCollection.find_one({"mail_id": int(mailId)})    
+    # mailInfo = mailCollection.find_one({"mail_id": int(mailId)})    
+    pipeline = [
+    { "$lookup" : { "from": "master",
+         "localField": "master",
+         "foreignField": "name",
+         "as": "master"}}, 
+    { "$match": { "mail_id": int(mailId) }  }  
+    ]
+    mailInfo = mailCollection.aggregate(pipeline)
+    mailConfig  = mailInfo.next()
+
     
-    
+    masterConfig = mailConfig['master']
+
+    me = masterConfig[0]['email']
+    password = masterConfig[0]['mail_pwd']
+    # print(mailInfo['subject'])
+    # print(mailInfo[0]['email'])
 
     # if appName == 'ballet':
     # app.config['MAIL_SERVER']='smtp.live.com'
@@ -735,16 +753,16 @@ def send_email():
         stage    = formData['stage']
         course   = formData['course_type']
 
-        me = 'info@russianmastersballet.com'
+        # me = masterConfig[0]['email']
         to = "anthony_dupont@hotmail.com"
-        password = 'Rmbc2015'
+        # password = masterConfig[0]['mail_pwd']
 
-        # AUTOMATIC NOTIFICATION SENT TO THE REGISTER GUY
+        # AUTOMATIC CONFIRMATION
         msg = MIMEText("Dear "+ prenom + ",\n\nWe have received your registration form and will contact you in a short time.\n\nYours sincerely,\n\n----------------------------------------------------------------------------------------\n\nEstimado/a "+ prenom + ",\n\nHemos recibido su formulario de registro, contactaremos con usted en breve.\n\nAtentamente,  \n\nYulia Mahilinskaya \nMobile: + 34 609816395\nSkype: russianmastersballet\n ")
-        msg['Subject'] = mailInfo['subject']
+        msg['Subject'] = mailConfig['subject']
         msg['From'] = me
         msg['To'] = email
-        sender = mailInfo['sender']
+        sender = mailConfig['sender']
 
         session = smtplib.SMTP("smtp.1and1.com", 587)
         session.login(me, password)
@@ -793,39 +811,25 @@ def send_email():
     #     me = 'info@russianmastersballet.com'
     #     password = 'Rmbc2015'
 
-    # # PREPARE CONFIRMATION MSG
-    # # html = "Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test."          
-    
-    # # try:
-    # #     msg = Message( mailInfo['subject'],
-    # #     sender=('Armanaly', sender),
-    # #     html=html,
-    # #     recipients=[email])       
+    else:
+        try:
+            msg = MIMEText("Thanks for your interest in Armanaly! <br> This is an automatic notification following your registration in our application test.")
 
-    # #     mail.send(msg)
-    # # except Exception as err:
-    # #     print(err)
-    # #     print(err.args)
-    # #     return str(err)
-        
-    #     # # PROD
-    #     # app.config['MAIL_SERVER']='smtp.live.com'
-    #     # app.config['MAIL_PORT'] = 25
-    #     # app.config['MAIL_USERNAME'] = 'bde.play.2018@hotmail.com'
-    #     # app.config['MAIL_PASSWORD'] = 'bdeplay2018'
-    #     # app.config['MAIL_USE_TLS'] = True
-    #     # app.config['MAIL_USE_SSL'] = False
-        
-    #     # TEST
+            msg['Subject'] = mailConfig['subject']
+            msg['From'] = me
+            msg['To'] = email
 
-    #     # me = 'anthony_dupont@hotmail.com'
-    #     # password = 'Goodbye2012'
-        
-    #     dataCollection = mongo.db.ballet
-    #     formData = dataCollection.find_one({"_id":ObjectId(formId)})
-    #     sender = mailInfo['sender']
+            session = smtplib.SMTP("smtp.live.com", 25)
+            session.login(me, password)
+            session.sendmail(me, to, msg.as_string())
+            session.quit()
 
-    return ('OK')
+        except Exception as err:
+            print(err)
+            print(err.args)
+            return str(err)
+            
+    return jsonify({"sent": True})
 
 #####################
 # SIGNUP A NEW USER #
