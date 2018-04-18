@@ -661,6 +661,7 @@ def getGrids():
                                         clauses.update({obj['by']:infos['value']})
                                     
                             if clauses != {}:
+                                print(clauses)
                                 nb = dataCollection.count(clauses)
                         else:
                             nb = dataCollection.count({"stage":infos['value'], "course_type":children, "registred": True})
