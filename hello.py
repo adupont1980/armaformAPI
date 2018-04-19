@@ -96,6 +96,7 @@ def get_form_data():
 # GET DATA FROM CUSTOM COLLECTION
 ###################################
 @app.route('/custom_collection', methods=['GET'])
+@cross_origin()
 def get_data():
     #  TODO TESTER SI PLUSIEURS VALEURS SONT PASSEES DANS LE FILTRE
     collectionName = request.args['col_name']
