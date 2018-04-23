@@ -635,7 +635,7 @@ def getGrids():
     data = request.get_json(force=True)
     gridCollection = mongo.db.grids
     
-    # gridList = gridCollection.find({"activated": True, "master": data['master'] })
+    # 
     gridList = gridCollection.find_one({"activated": True, "master": data['master'], "type":"get_grids" })
     dataCollection = eval('mongo.db.'+data['master'])
     output = []
@@ -669,6 +669,7 @@ def getGrids():
                         listCourse.append({'name':infos['value'],'children': children, 'nbRecords': nb })
                 output.append({"name": gridList['name'], "listBtn":listCourse, "display": True })
             else: 
+                gridList = gridCollection.find({"activated": True, "master": data['master'] })
                 output.append({"name": gridList['name'], "display": True})
     except StopAsyncIteration:
         print("Empty cursor")
