@@ -671,8 +671,8 @@ def getGrids():
             else: 
                 gridList = gridCollection.find({"activated": True, "master": data['master'] })
                 for grid in gridList:
-                    print(grid)
-                output.append({"name": gridList['name'], "display": True})
+                    
+                    output.append({"name": grid['name'], "display": True})
     except StopAsyncIteration:
         print("Empty cursor")
 
