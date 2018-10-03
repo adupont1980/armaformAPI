@@ -113,18 +113,12 @@ def get_data():
         if (value != ''):
             isFiltered = True
             if (is_number(value) and name == 'year_range'):
-                print("convert")
                 condition = condition + '"' + name + '":' + value +',' 
             else:
-                print(value)
                 condition = condition + '"' + name + '":"' + value +'",' 
-                
             #condition = '{"' + filtersName[i] + '":"' + filtersValue[i] +'"}'
             
-            # SI LA COLLECTION CONTIENT PLUSIEURS CHAMPS, SELECT CONTIENT CELUI A RAMENER
-            # if 'select' in request.args: 
-            # print(request.args['select'])
-    print(condition)
+    # print(condition)
     condition = condition[:-1]
     condition = condition + '}'     
     if returnType == 'btn':
@@ -144,7 +138,6 @@ def get_data():
                 output.append(i)
 
             output.append(maxDate)
-            print(output)
             return jsonify(output)
 
         else:
@@ -164,14 +157,9 @@ def get_data():
                 
         cursor = eval(collection)
         for c in cursor:
-            print(c['name'])
+            # print(c['name'])
             output.append({ "name": c['name'], "url": c['url'], "list": c['modeles']})
         return jsonify(output)
-    # for doc in cursor:
-    #     json_doc = json.dumps(doc, default=json_util.default)
-    #     output.append(json_doc)
-    #     # output.append({lstField[0]: s[lstFi eld[0]])}
-    #return output
 
 ###################################
 # UPLOAD A FILE TO CLOUDIFIER      #
@@ -180,15 +168,11 @@ def get_data():
 @app.route('/store_file', methods=['POST'])
 @cross_origin()
 def storeFile():
-    print(request)
-    print(request.files)
+    # print(request)
+    # print(request.files)
     
     imd = request.files
     fileList = imd.getlist('uploadFile')
-    # data = request.files.get('uploadFile')
-    # print(data)
-    print(fileList)
-    print("store_file")
     
     resultList = []
     for f in fileList:
@@ -200,15 +184,7 @@ def storeFile():
                 'step_name': f.filename 
             }
             resultList.append(jsonResult)
-    print(resultList)
-    # if 'file' not in data:
-    #     print("not a file")
-    # else:
-    #     print("data is a file")
-    # file = request.files['FileStorage']
-    # print(file.filename)
-    # value = request(force=True)
-    print('ok')
+
     return jsonify(resultList)
 
 ####################################
@@ -217,19 +193,16 @@ def storeFile():
 @app.route('/save_datas', methods=['POST'])
 def save_step():
     referer = request.headers.get('referer')
-    print(referer)
-    print(request.get_json(force=True))
+    # print(referer)
+    # print(request.get_json(force=True))
 
-    print('headers\n')
-    print(request.headers.get('request'))
     data = request.get_json(force=True)
-    print(data)
     fileNameList = []
     objToSave = {}
     safeOrigin = True
     
     for obj in data:
-        print(obj)
+        # print(obj)
         
         # A MODIFIER QUAND J'AURAI CREE TOKEN
         # listAppName = ['ballet', 'auto', 'modele']
@@ -256,7 +229,7 @@ def save_step():
                     # if str(encodedToken) == tokenFromApp:
                     safeOrigin = True
                     print('key OK we can save source is safe')
-            print(safeOrigin)    
+            # print(safeOrigin)    
         else:
             
 # ETAT TRANSACTION: 1= NEW; 2=OFFRE EN COURS; 3=ACHETE; 4 = VENDU
@@ -353,21 +326,14 @@ def setGroupToUser():
 @app.route('/step', methods=['GET'])
 @cross_origin()
 def get_steps():
-    print("get_steps")
+    
     # LIST OF STEPS FROM SELECTED MASTER
     output = []
     appName = request.args['app_name']
-    print(appName)
     master = mongo.db.master.find_one({"name": appName})
-    print(master)
-    # for master in masterSteps:
-
-    # print(m['save_button'])
         
     # master name: TO FIND WHICH STEPS WE NEED
     # master type: WORKFLOW || FORM || ADMIN 
-
-    # if (pbkdf2_sha256.verify(credentials['password'], user['password'])):
 
     encodedToken = jwt.encode({'key_gen': master['key_gen']}, 'secret', algorithm='HS256')
 
@@ -443,16 +409,12 @@ def get_cargo_details():
         destination = request.args['destination']
         dataCollection = mongo.db.rates
         details = list(mongo.db.rates.find({"origin":origin, "destination":destination}))
-        for d in details:
-            print(d)
-            # print(d['_-45'])
         return json.dumps(details, default=json_util.default)
     except Exception as inst:
         print(type(inst))
         print(inst.args)  
         print(inst) 
         return "ERROR"
-   
 
 ########################
 # GET TECH DETAILS (CAR APP)  #
@@ -487,9 +449,8 @@ def get_datas():
     try:
         gridName = request.args['grid_name']
         filterSelected = request.args['filter']
-        print(gridName)
-        print(filterSelected)
-        print('start grid')
+        # print(gridName)
+        # print(filterSelected)
 
         gridCollection = mongo.db.grids
         
@@ -505,13 +466,11 @@ def get_datas():
         else:
             dataCollection = mongo.db.datas
 
-        print(collectionName)
-        
         # FILTERED
         if 'filtered' in grid:
             objFilter = {}
             for i, val in enumerate(grid['filtered']):
-                print(val)
+                # print(val)
                 if grid['filtered'][i]['value_by'] == 'filterSelected':
                     valueBy = filterSelected
                 else:
@@ -519,13 +478,13 @@ def get_datas():
                 obj = { grid['filtered'][i]['by']:valueBy }
                 objFilter.update(obj)
 
-            print(objFilter)
+            # print(objFilter)
 
             datas = dataCollection.find(objFilter)
         else:
             datas = dataCollection.find({})
         
-        print(datas)
+        # print(datas)
         # SORTED
         if 'sorted' in grid:
             # sortBy = grid['sorted'][0]
@@ -537,10 +496,9 @@ def get_datas():
                     order = toSort['order']
                 # print(toSort.values())
                 sortBy.append((by, order))
-            # datas.sort([(sortBy,-1), ("duration", 1)])
             datas.sort(sortBy)
        
-            print(sortBy)
+            # print(sortBy)
 
         output = []
         config = {"details_activated": False, "group": False, "export": False, "export_id":0}
@@ -552,14 +510,13 @@ def get_datas():
                 config.update({"group": grid['details']['group']})
             if 'activated' in grid['details']: 
                 config.update({"details_activated": grid['details']['activated']})
-
             
         output.append(config)
 
         course_list = []
         # Pour chaque élement de la collection data
         for s in datas:
-            print(s)
+            # print(s)
             record = {}
             record.update({"_id": str(s["_id"])})
             
@@ -635,44 +592,38 @@ def getGrids():
     data = request.get_json(force=True)
     gridCollection = mongo.db.grids
     
-    # 
     gridList = gridCollection.find_one({"activated": True, "master": data['master'], "type":"get_grids" })
     dataCollection = eval('mongo.db.'+data['master'])
     output = []
-    # if data['master'] == 'ballet':
     listCourse = []
     try:
-        # for grid in gridList:
-            if gridList != None:
-                for infos in gridList['list']:
-                # for infos in grid['list']:
-                    for children in infos['children']:
-                        # res = dataCollection.count({"stage":infos['value'], "course_type":children})
-                        # if res == 0:
-                           
-                        if dataCollection.count({"stage":infos['value'], "course_type":children}) == 0:
-                            filters = gridCollection.find({"name": children},{"filtered": 1})
-                            clauses = {}
-                            nb = 0
-                            for filtered in filters:
-                                for obj in filtered['filtered']:
-                                    if (obj['value_by'] != 'filterSelected'):
-                                        clauses.update({obj['by']:obj['value_by']})
-                                    else:
-                                        clauses.update({obj['by']:infos['value']})
-                                    
-                            if clauses != {}:
-                                print(clauses)
-                                nb = dataCollection.count(clauses)
-                        else:
-                            nb = dataCollection.count({"stage":infos['value'], "course_type":children, "registred": True})
-                        listCourse.append({'name':infos['value'],'children': children, 'nbRecords': nb })
-                output.append({"name": gridList['name'], "listBtn":listCourse, "display": True })
-            else: 
-                gridList = gridCollection.find({"activated": True, "master": data['master'] })
-                for grid in gridList:
-                    
-                    output.append({"name": grid['name'], "display": True})
+        if gridList != None:
+            for infos in gridList['list']:
+                for children in infos['children']:
+                        
+                    if dataCollection.count({"stage":infos['value'], "course_type":children}) == 0:
+                        filters = gridCollection.find({"name": children},{"filtered": 1})
+                        clauses = {}
+                        nb = 0
+                        for filtered in filters:
+                            for obj in filtered['filtered']:
+                                if (obj['value_by'] != 'filterSelected'):
+                                    clauses.update({obj['by']:obj['value_by']})
+                                else:
+                                    clauses.update({obj['by']:infos['value']})
+                                
+                        if clauses != {}:
+                            print(clauses)
+                            nb = dataCollection.count(clauses)
+                    else:
+                        nb = dataCollection.count({"stage":infos['value'], "course_type":children, "registred": True})
+                    listCourse.append({'name':infos['value'],'children': children, 'nbRecords': nb })
+            output.append({"name": gridList['name'], "listBtn":listCourse, "display": True })
+        else: 
+            gridList = gridCollection.find({"activated": True, "master": data['master'] })
+            for grid in gridList:
+                
+                output.append({"name": grid['name'], "display": True})
     except StopAsyncIteration:
         print("Empty cursor")
 
@@ -779,7 +730,6 @@ def send_email():
         bckMessage = MIMEText(prenom + " " + nom + " has registred to the "+ course + 
                 " course for "+ stage +
                 "\n\n age:  " + formData['age'] +
-                
                 "\n Residence: "+ formData['residence'] +
                 "\n Years of  experience: "+ formData['years_of_experience'] +
                 "\n email: "+ email )
@@ -853,8 +803,8 @@ def signup():
 def getGroups():
     courseType = request.args['course']
     stage = request.args['stage']
-    print(courseType)
-    print(stage)
+    # print(courseType)
+    # print(stage)
     groups = collection = mongo.db.balletCourse.find({"name": courseType, "stage": stage}).distinct("groups")
     jsonGroups = {}
     jsonGroupsArray= []
@@ -951,7 +901,7 @@ def signin():
     # Add creation date 
     # user.update({ "date_creation" : datetime.now()})
     # output = {}
-    print(credentials)
+    # print(credentials)
     user = mongo.db.users.find_one({"email": credentials['email'], "master": credentials['app']})
     if (user != None):
         if (pbkdf2_sha256.verify(credentials['password'], user['password'])):
@@ -960,7 +910,6 @@ def signin():
                 'exp': 1485972805
             }
             encoded = jwt.encode(message, 'secret', algorithm='HS256')
-            print(encoded)
             output = {"logged": True, "message": "User connected", "token": encoded, "user_id": user['_id'] }
         else:
             print('error')
@@ -1026,7 +975,7 @@ def exportExcel():
     export_id = formValues['export_id']
 
     def generate():
-        print(course)
+        # print(course)
         data = io.StringIO()
         w = csv.writer(data)
 
@@ -1122,7 +1071,7 @@ def checkAuthentication(token):
             payload = jwt.decode(token, 'secret', algorithm='HS256')
             result = True
         else:
-            print('token invalid')
+            # print('token invalid')
             result = False
         return result
     except (jwt.DecodeError, jwt.ExpiredSignatureError):
@@ -1150,10 +1099,10 @@ def makeOffer():
             }, upsert=False)
         
         # new_id = eval(query)
-        print('token Valid')
+        # print('token Valid')
         return jsonify({"etat": 2,"title": "Offre en cours", "message": "Offre rachat enregistrée" }) 
     else: 
-        print('token invalid')
+        # print('token invalid')
         return jsonify({"title": "Erreur", "message": "Veuillez-vous connecter pour mettre à jour ce champs"})
 
 ################################
@@ -1166,7 +1115,7 @@ def makeOffer():
 def buyingPrice():
     formValues = request.get_json()
     token = formValues['token']
-    print(formValues['token'])
+    # print(formValues['token'])
     _id = formValues['_id']
     if checkAuthentication(formValues['token']):
         carId =  formValues['_id']
@@ -1180,10 +1129,10 @@ def buyingPrice():
             }, upsert=False)
         
         # new_id = eval(query)
-        print('token Valid')
+        # print('token Valid')
         return jsonify({"etat": 3, "title": "Acheté", "message": "Achat véhicule enregistré" }) 
     else: 
-        print('token invalid')
+        # print('token invalid')
         return jsonify({"title": "Erreur", "message": "Veuillez-vous connecter pour mettre à jour ce champs"})
 
 ################################
@@ -1207,7 +1156,7 @@ def sellingPrice():
             }, upsert=False)
         return jsonify({"etat": 4, "title": "Vendu", "message": "Vente véhicule enregistré" }) 
     else: 
-        print('token invalid')
+        # print('token invalid')
         return jsonify({"title": "Erreur", "message": "Veuillez-vous connecter pour mettre à jour ce champs"})
 
 
