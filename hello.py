@@ -500,8 +500,16 @@ def get_datas():
        
             # print(sortBy)
 
+            details_activated = False
+            removable_activated = False
+            if 'details' in grid:
+                if 'activated' in grid['details']:
+                    details_activated = True
+                if 'removable' in grid['details']:
+                    removable_activated = True
+
         output = []
-        config = {"details_activated": False, "group": False, "export": False, "export_id":0}
+        config = {"details_activated": False, "group": False, "export": False, "export_id":0, "removable": False}
         config.update({'config': grid['cols']})
         if "details" in grid:
             if 'export' in grid['details']:
@@ -510,6 +518,9 @@ def get_datas():
                 config.update({"group": grid['details']['group']})
             if 'activated' in grid['details']: 
                 config.update({"details_activated": grid['details']['activated']})
+            if 'removable' in grid['details']:
+                config.update({"removable": grid['details']['removable']})
+                
             
         output.append(config)
 
@@ -562,7 +573,11 @@ def get_datas():
                     #SI PAS FIELD PANEL ALORS COLONNE CLASIQUE TITLE + DATA
                     record.update({dicCol['data']: s[dicCol['data']]})
                     record.update({'title': dicCol['title']})
-            
+        
+
+            record.update({"details": {"activated": details_activated, "removable": removable_activated}})
+
+
             if 'cargo_details' in grid:
                 if 'activated' in grid['cargo_details']:
                     record.update({"cargo_details": {"activated": True}})
@@ -579,6 +594,11 @@ def get_datas():
     except (TypeError):
         print(TypeError)
         return Response({"msg" , TypeError}, status=400, mimetype='application/json')
+
+
+
+
+
 
 ###################
 # GET LIST OF GRIDS
