@@ -25,6 +25,7 @@ from functools import wraps
 import io
 import mimetypes
 from werkzeug.datastructures import Headers
+import gzip
 
 app = Flask(__name__)
 mail = Mail()
@@ -35,8 +36,11 @@ PROD_DB = os.environ.get('PROD_DB')
 #DEV PURPOSE
 if not MONGO_URL:
     #  MONGO_URL = "mongodb://localhost:27017/cargo_friend";
-    MONGO_URL = "mongodb://localhost:27017/auto";
+    # MONGO_URL = "mongodb://localhost:27017/auto";
+    # PROD
     # MONGO_URL = "mongodb://russianballet:Axonian456@ds135029.mlab.com:35029/heroku_p754dw74"
+    # TEST
+    MONGO_URL = "mongodb://heroku_ft6z9vcb:og2cgthim6dpskdj39ajvcm6qs@ds163745.mlab.com:63745/heroku_ft6z9vcb"
 
 if not PROD_DB:
     PROD_DB = False
@@ -314,8 +318,8 @@ def setGroupToUser():
     idRecord = data['_id']
     newVal = data['groupName']
     new_id = mongo.db.ballet.update({'_id':  ObjectId(idRecord)}, { '$set':{'group': newVal}}, upsert=False)
-    print(new_id)
-    print(idRecord)
+    # print(new_id)
+    # print(idRecord)
 
     # return jsonify({"Changed": True, "new_id": new_id})
     return json.dumps({'message': 'Group updated'}, default=json_util.default)
@@ -326,66 +330,69 @@ def setGroupToUser():
 @app.route('/step', methods=['GET'])
 @cross_origin()
 def get_steps():
-    
-    # LIST OF STEPS FROM SELECTED MASTER
-    output = []
-    appName = request.args['app_name']
-    master = mongo.db.master.find_one({"name": appName})
+    try:
+        # print('enter GET STEPS')
+        # LIST OF STEPS FROM SELECTED MASTER
+        output = []
+        appName = request.args['app_name']
+        master = mongo.db.master.find_one({"name": appName})
+        # print(master)
+        # master name: TO FIND WHICH STEPS WE NEED
+        # master type: WORKFLOW || FORM || ADMIN 
+
+        encodedToken = jwt.encode({'key_gen': master['key_gen']}, 'secret', algorithm='HS256')
+
+        # DESIGN TEMPLATE
+        if 'template' in master:
+            template = mongo.db.templates.find_one({"master": master['template']})
+            design_page = {
+                "back_btn" : template['back_btn'],
+                "background_color" : template['background_color'],
+                "list_btn" : template['list_btn'],
+                "panel_heading" : template['panel_heading'],
+                "hover_btn" : template['hover_btn'],
+                "grid_btn" : template['grid_btn']
+            }
+
+
+        Steps = mongo.db.steps.find({"master": appName}).sort("step_id",1)
+        logoUrl = ""
+        if "logo_url" in master:
+            logoUrl = master['logo_url'] 
         
-    # master name: TO FIND WHICH STEPS WE NEED
-    # master type: WORKFLOW || FORM || ADMIN 
-
-    encodedToken = jwt.encode({'key_gen': master['key_gen']}, 'secret', algorithm='HS256')
-
-    # DESIGN TEMPLATE
-    if 'template' in master:
-        template = mongo.db.templates.find_one({"master": master['template']})
-        design_page = {
-            "back_btn" : template['back_btn'],
-            "background_color" : template['background_color'],
-            "list_btn" : template['list_btn'],
-            "panel_heading" : template['panel_heading'],
-            "hover_btn" : template['hover_btn'],
-            "grid_btn" : template['grid_btn']
-        }
-
-
-    Steps = mongo.db.steps.find({"master": appName}).sort("step_id",1)
-    logoUrl = ""
-    if "logo_url" in master:
-        logoUrl = master['logo_url'] 
-    
-    menu_level = 0
-    if "menu_level" in master:
-        menu_level = master['menu_level']
-    
-    output.append({
-        "default_language": master['default_language'],
-        "languages": master['languages'],
-        "template": master['template'],
-        "logo_url": logoUrl,
-        "design" : design_page,
-        "menu_level": menu_level 
-    })
-
-    for step in Steps:
-        conditions = []
-        if 'conditions' in step: 
-            conditions.append(step['conditions'])
-               
+        menu_level = 0
+        if "menu_level" in master:
+            menu_level = master['menu_level']
+        
         output.append({
-        "step_id": step['step_id'],
-        "master_name": master['name'],
-        "master_type": master['type'],
-        "logo_url": logoUrl,
-        "name": step['name'],
-        "type": step['type'],
-        "configuration": step['configuration'],
-        "conditions": conditions,
-        "token": str(encodedToken)
+            "default_language": master['default_language'],
+            "languages": master['languages'],
+            "template": master['template'],
+            "logo_url": logoUrl,
+            "design" : design_page,
+            "menu_level": menu_level 
         })
 
-    return jsonify(output)
+        for step in Steps:
+            conditions = []
+            if 'conditions' in step: 
+                conditions.append(step['conditions'])
+                
+            output.append({
+            "step_id": step['step_id'],
+            "master_name": master['name'],
+            "master_type": master['type'],
+            "logo_url": logoUrl,
+            "name": step['name'],
+            "type": step['type'],
+            "configuration": step['configuration'],
+            "conditions": conditions,
+            "token": str(encodedToken)
+            })
+
+        return jsonify(output)
+    except ValueError as err:
+        print(err)
 
 ########################
 # GET DETAILS AUTO APP (CAR APP)#
@@ -447,8 +454,13 @@ def get_ballet_details():
 @cross_origin()
 def get_datas():
     try:
+        
         gridName = request.args['grid_name']
         filterSelected = request.args['filter']
+        
+        
+        details_activated = False
+        removable_activated = False
         # print(gridName)
         # print(filterSelected)
 
@@ -500,8 +512,6 @@ def get_datas():
        
             # print(sortBy)
 
-            details_activated = False
-            removable_activated = False
             if 'details' in grid:
                 if 'activated' in grid['details']:
                     details_activated = True
@@ -521,13 +531,12 @@ def get_datas():
             if 'removable' in grid['details']:
                 config.update({"removable": grid['details']['removable']})
                 
-            
+        # print(config)
         output.append(config)
 
         course_list = []
         # Pour chaque élement de la collection data
         for s in datas:
-            # print(s)
             record = {}
             record.update({"_id": str(s["_id"])})
             
@@ -633,7 +642,7 @@ def getGrids():
                                     clauses.update({obj['by']:infos['value']})
                                 
                         if clauses != {}:
-                            print(clauses)
+                            # print(clauses)
                             nb = dataCollection.count(clauses)
                     else:
                         nb = dataCollection.count({"stage":infos['value'], "course_type":children, "registred": True})
@@ -897,7 +906,7 @@ def getGroups():
         for grp in jsonGroupsArray:
             groupFound = False
             for group in groups_weekList:
-                print(group['_id'])
+                # print(group['_id'])
                 if grp['group'] == group['_id']:
                     grp['lst'].append({"week": 1, "people": group['count']})
                     groupFound = True
@@ -990,10 +999,9 @@ def exportExcel():
     formValues = request.get_json()
     
     stage = formValues['stage']
-    course = formValues['course_type']
+    courseType = formValues['course_type']
     
     export_id = formValues['export_id']
-
     def generate():
         # print(course)
         data = io.StringIO()
@@ -1006,11 +1014,14 @@ def exportExcel():
                 colTitle.append(cols['title'])
             w.writerow(( colTitle ))
 
-            clause = {}
-            for filterValue in configExport[0]['filtered']:
-                clause.update({filterValue['by']: filterValue['value_by']})
+            # clause = {}
+            # clause.update({"stage": stage, "course_type": courseType})
+            # for filterValue in configExport[0]['filtered']:
+            #     clause.update({filterValue['by']: filterValue['value_by']})
             
-            students = mongo.db.ballet.find(clause)
+
+            # print(clause)
+            # students = mongo.db.ballet.find(clause)
         else:
              # write header
             w.writerow((
@@ -1021,10 +1032,11 @@ def exportExcel():
                     'E-mail 2', 'Padres', 'Escuela', 'notas'
                    ))
         
-            if course == 'New demands':
-                students = mongo.db.ballet.find({"stage": stage, "course_type": course}).sort( "group", 1).sort("course_type", 1)
-            else: 
-                students = mongo.db.ballet.find({"stage": stage, "course_type": course, "registred": True}).sort( "group", 1).sort("course_type", 1)
+        if courseType in ['New demands',"All"]:
+            print('ici')
+            students = mongo.db.ballet.find({"stage": stage}).sort( "group", 1).sort("course_type", 1)
+        else: 
+            students = mongo.db.ballet.find({"stage": stage, "course_type": courseType, "registred": True}).sort( "group", 1).sort("course_type", 1)
 
         yield data.getvalue()
         data.seek(0)
@@ -1043,7 +1055,11 @@ def exportExcel():
                                     values.append(ori[i][tmpColVal])
                                     break
                         else:
-                            values.append(student[tmpColVal])
+                            try:
+                                values.append(student[tmpColVal])
+                            except KeyError as noKey:
+                                pass
+                            
                     w.writerow((values))
                 else:
                     profile  = student['profile']
@@ -1084,6 +1100,21 @@ def exportExcel():
         stream_with_context(generate()),
         mimetype='text/csv', headers=headers
     )
+
+
+@app.route('/to_delete_record', methods=['POST'])
+# @cross_origin()
+# def deleteRecord():
+#     print('call deleteRecord')
+#     formValues = request.get_json()
+#     # token = 
+#     token = 4343
+#     _id = formValues['_id']
+#     print('check_auth')
+#     if checkAuthentication(formValues['token']):
+#         print(checkAuthentication(formValues['token']))
+#     return 'ok'
+
 
 def checkAuthentication(token):
     try:
