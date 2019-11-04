@@ -334,7 +334,7 @@ def get_steps():
         # print('enter GET STEPS')
         # LIST OF STEPS FROM SELECTED MASTER
         output = []
-        appName = request.args['app_name']
+        appName = request.asrgs['app_name']
         master = mongo.db.master.find_one({"name": appName})
         # print(master)
         # master name: TO FIND WHICH STEPS WE NEED
@@ -393,6 +393,7 @@ def get_steps():
         return jsonify(output)
     except ValueError as err:
         print(err)
+        return jsonify(err)
 
 ########################
 # GET DETAILS AUTO APP (CAR APP)#
@@ -593,7 +594,11 @@ def get_datas():
             output.append(record)
                 
         return jsonify(output)
-
+        
+    except Exception as err:
+            print(err)
+            print(err.args)
+            return str(err)
     except (ValueError):
         print("Value Error")
         return Response({"msg":"JSON Format Error." }, status=400, mimetype='application/json')
@@ -1103,17 +1108,24 @@ def exportExcel():
 
 
 @app.route('/to_delete_record', methods=['POST'])
-# @cross_origin()
-# def deleteRecord():
-#     print('call deleteRecord')
-#     formValues = request.get_json()
-#     # token = 
-#     token = 4343
-#     _id = formValues['_id']
-#     print('check_auth')
-#     if checkAuthentication(formValues['token']):
-#         print(checkAuthentication(formValues['token']))
-#     return 'ok'
+@cross_origin()
+def deleteRecord():
+    print('call deleteRecord')
+    formValues = request.get_json()
+    print(formValues)
+    # token = 
+    # token = 4343
+    _id = formValues['_id']
+    print(_id)
+    dataCollection = mongo.db.ballet
+    student = dataCollection.find_one({"_id":ObjectId(_id)},{"_id":0})
+    collection = mongo.db.archive_ballet.insert_one(student)
+    rm = mongo.db.ballet.delete_one( { "_id" : ObjectId(_id) } )
+    print(rm)
+    # print('check_auth')
+    # if checkAuthentication(formValues['token']):
+    #     print(checkAuthentication(formValues['token']))
+    return 'ok'
 
 
 def checkAuthentication(token):
