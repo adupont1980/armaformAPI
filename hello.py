@@ -334,7 +334,7 @@ def get_steps():
         # print('enter GET STEPS')
         # LIST OF STEPS FROM SELECTED MASTER
         output = []
-        appName = request.asrgs['app_name']
+        appName = request.args['app_name']
         master = mongo.db.master.find_one({"name": appName})
         # print(master)
         # master name: TO FIND WHICH STEPS WE NEED
@@ -594,11 +594,11 @@ def get_datas():
             output.append(record)
                 
         return jsonify(output)
-        
+
     except Exception as err:
-            print(err)
-            print(err.args)
-            return str(err)
+        print(err)
+        print(err.args)
+        return Response({"msg":"JSON Format Error."}, status=400, mimetype='application/json')
     except (ValueError):
         print("Value Error")
         return Response({"msg":"JSON Format Error." }, status=400, mimetype='application/json')
